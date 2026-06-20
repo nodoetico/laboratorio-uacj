@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  STUDENT
+  SERVICE
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  name      String
+  password  String
+  role      Role      @default(STUDENT)
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+
+  experiments   Experiment[]
+  equipmentUses EquipmentUsage[]
+  attendance    Attendance[]
+  auditLogs     AuditLog[]
+}
+
+model Experiment {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  title           String
+  contaminant     String
+  materialMass    Float
+  solutionVolume  Float
+  initialConcentration Float
+  status          String   @default("in_progress")
+  createdAt       DateTime @default(now())
+  completedAt     DateTime?
+
+  user        User         @relation(fields: [userId], references: [id])
+  replicates  ExperimentReplicate[]
+}
+
+model ExperimentReplicate {
+  id           Int     @id @default(autoincrement())
+  experimentId Int
+  replicateNum Int
+  materialMass Float?
+
+  experiment  Experiment       @relation(fields: [experimentId], references: [id])
+  measurements Measurement[]
+}
+
+model Measurement {
+  id             Int     @id @default(autoincrement())
+  replicateId    Int
+  timeHours      Float
+  absorbance     Float
+
+  replicate ExperimentReplicate @relation(fields: [replicateId], references: [id])
+}
+
+model Equipment {
+  id              Int      @id @default(autoincrement())
+  name            String   @unique
+  model           String?
+  description     String?
+  maintenanceDays Int      @default(180)
+  lastMaintenance DateTime?
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+
+  usages EquipmentUsage[]
+}
+
+model EquipmentUsage {
+  id          Int      @id @default(autoincrement())
+  equipmentId Int
+  userId      Int
+  startAt     DateTime
+  endAt       DateTime?
+  description String
+  createdAt   DateTime @default(now())
+
+  equipment Equipment @relation(fields: [equipmentId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+}
+
+model Attendance {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  checkIn   DateTime
+  checkOut  DateTime?
+  type      String   @default("research")
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  accion     String
+  entidad    String
+  entidadId  Int?
+  detalle    String?
+  createdAt  DateTime @default(now())
+
+  user User  @relation(fields: [userId], references: [id])
+}
