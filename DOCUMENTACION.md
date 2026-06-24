@@ -41,10 +41,11 @@ El sistema permite:
 |---|---|
 | Framework | Next.js 16 (App Router) |
 | Lenguaje | TypeScript |
-| Base de datos | SQLite (via Prisma ORM) |
+| Base de datos | PostgreSQL (Neon) — vía Prisma ORM 7 |
 | Autenticación | JWT (jose) + bcryptjs |
 | Estilos | Tailwind CSS v4 |
-| Motor BD | better-sqlite3 |
+| Adapter DB | @prisma/adapter-pg |
+| Despliegue | Railway (railpack v0.30) |
 
 ---
 
@@ -314,8 +315,9 @@ Todas las operaciones críticas quedan registradas en la tabla `AuditLog`:
 ### Requisitos
 - Node.js 20+
 - npm
+- PostgreSQL (local o remoto)
 
-### Instalación
+### Instalación local
 
 ```bash
 cd laboratorio-app
@@ -327,6 +329,7 @@ npm run dev
 ```
 
 ### Acceso
+- **Producción:** https://laboratorio-uacj-production.up.railway.app
 - **Local:** http://localhost:3000
 - **Login:** doctor@uacj.mx / admin123
 - **Login estudiante:** estudiante@uacj.mx / admin123
@@ -337,9 +340,23 @@ npm run dev
 | Comando | Descripción |
 |---|---|
 | `npm run dev` | Iniciar servidor de desarrollo |
-| `npm run build` | Compilar para producción |
+| `npm run build` | Compilar para producción (standalone) |
 | `npm run seed` | Poblar base de datos con datos demo |
 | `npm run lint` | Verificar código con ESLint |
+
+### Despliegue en Railway
+
+El proyecto está desplegado en Railway con despliegue automático desde GitHub:
+
+1. El repositorio `nodoetico/laboratorio-uacj` está conectado a Railway
+2. Al hacer push a `master`, Railway ejecuta automáticamente:
+   - `npm ci` (con postinstall: `prisma generate`)
+   - `npm run build` (`next build`)
+   - `npx prisma migrate deploy && npm run start`
+3. Variables de entorno configuradas en Railway:
+   - `DATABASE_URL` — PostgreSQL externa (Neon)
+   - `JWT_SECRET` — Secreto para firmar JWT
+4. Railway CLI instalada globalmente: `railway` v5.20.0
 
 ---
 
@@ -357,7 +374,9 @@ laboratorio-app/
 │   ├── schema.prisma             # Modelo de datos
 │   ├── seed.ts                   # Datos de prueba
 │   └── migrations/               # Migraciones de BD
-├── proxy.ts                      # Middleware de autenticación
+├── Procfile                      # Comando de inicio para Railway
+├── prisma.config.ts              # Configuración de Prisma 7
+├── middleware.ts                  # Middleware de autenticación
 └── src/
     ├── app/
     │   ├── globals.css           # Estilos globales Tailwind
@@ -367,8 +386,10 @@ laboratorio-app/
     │   │   └── login/page.tsx    # Página de inicio de sesión
     │   ├── (dashboard)/          # Rutas protegidas
     │   │   └── dashboard/
-    │   │       ├── layout.tsx    # Layout con sidebar
+    │   │       ├── layout.tsx    # Layout con sidebar (responsive)
     │   │       ├── page.tsx      # Dashboard principal
+    │   │       ├── MobileMenu.tsx # Menú hamburguesa para móvil
+    │   │       ├── SidebarClient.tsx # Navegación del sidebar
     │   │       ├── experiments/  # Módulo Experimentación
     │   │       ├── equipment/    # Módulo Equipos
     │   │       └── attendance/   # Módulo Asistencia
@@ -377,10 +398,11 @@ laboratorio-app/
     │           ├── session/route.ts
     │           └── logout/route.ts
     ├── lib/                      # Capa de datos
-    │   ├── auth.ts               # Autenticación JWT
-    │   ├── dal.ts                # Data Access Layer
-    │   ├── db.ts                 # Conexión Prisma
-    │   └── types.ts              # Tipos TypeScript
+    │   ├── autenticacion.ts      # Autenticación JWT
+    │   ├── bd.ts                 # Conexión Prisma (adapter-pg)
+    │   ├── datos.ts              # Data Access Layer
+    │   ├── formatear.ts          # Formateo de fechas (America/Ciudad_Juarez)
+    │   └── tipos.ts              # Tipos TypeScript
     └── servicios/                # Capa de servicios
         ├── auditoria.ts          # Trazabilidad ISO 17025
         ├── experimentos.ts       # Gestión de experimentos
@@ -390,19 +412,60 @@ laboratorio-app/
 
 ---
 
-## 10. Próximos Pasos
+## 10. Historial de Cambios
 
-### Pendientes para futuras versiones
+### v0.3 — 23 de junio de 2026
+- [x] Despliegue en Railway con PostgreSQL (Neon)
+- [x] Migración a Prisma 7 (`@prisma/adapter-pg`)
+- [x] Timezone corregido a `America/Ciudad_Juarez` (UACJ)
+- [x] Sidebar responsive con menú hamburguesa en móvil
+- [x] Tablas con scroll horizontal en dispositivos móviles
+- [x] Grids adaptables a 2 columnas en móvil
+- [x] Corrección en comparación de fechas "hoy" para zona horaria local
+- [x] Seed ejecutado en producción con usuarios demo
+- [x] Variables de entorno configuradas en Railway
+
+### v0.2 — Junio 2026
+- [x] Módulo de Experimentación con réplicas (triplicado)
+- [x] Módulo de Equipos con alertas de mantenimiento
+- [x] Módulo de Asistencia (check-in/check-out)
+- [x] Sistema de trazabilidad ISO 17025 (AuditLog)
+- [x] Roles de usuario: ADMIN, STUDENT, SERVICE
+
+### v0.1 — Mayo 2026
+- [x] Autenticación JWT con bcryptjs
+- [x] Estructura base Next.js 16 App Router
+- [x] Modelo de datos Prisma
+- [x] Tailwind CSS v4
+
+---
+
+## 11. Pendientes
+
+### Prioridad alta
+
+- [ ] **Detección de sesiones activas** — Saber quién inició sesión pero no ha marcado asistencia. Implementación pendiente:
+  - Crear tabla `ActiveSession` (userId, loginAt, lastActiveAt) en Prisma
+  - Guardar sesión activa en `autenticarUsuario` al hacer login
+  - Eliminar sesión activa en `eliminarSesion` al hacer logout
+  - Endpoint de heartbeat que el frontend llama cada 30s para marcar actividad
+  - Vista en Dashboard del admin: "Usuarios conectados" vs "Usuarios con asistencia"
+  - El Dr. Torres podría ver quién está en el sistema sin haber registrado entrada
+
+### Prioridad media
 
 - [ ] **Inventario de Reactivos** (Módulo 4) — El Dr. Torres ya envió el Excel. Control de stock con alertas de bajo inventario
 - [ ] **Notificaciones** — Avisar al Dr. cuando un estudiante completa un experimento
 - [ ] **Cálculos automáticos** — Ecuaciones para obtener parámetros cinéticos (marcados en azul en el Excel)
 - [ ] **Exportación a Excel/PDF** — Reportes descargables
 - [ ] **Gráficas** — Visualización de curvas de absorbancia vs tiempo
+
+### Prioridad baja
+
 - [ ] **Modo oscuro** — El CSS ya tiene variables preparadas
-- [ ] **Despliegue en producción** — Migrar a PostgreSQL o Turso para Vercel/Railway
+- [ ] **Dominio personalizado** — Configurar un dominio propio en Railway
 
 ---
 
-*Documentación generada el 4 de junio de 2026*
+*Documentación generada el 23 de junio de 2026*
 *Sistema desarrollado para el Laboratorio de Investigación UACJ — Dr. Torres*
