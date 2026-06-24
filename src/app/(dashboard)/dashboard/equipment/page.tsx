@@ -1,6 +1,7 @@
 import { verificarSesion } from "@/lib/autenticacion";
 import { obtenerEquipos, obtenerUsoEquipos } from "@/lib/datos";
 import { registrarUsoEquipo } from "@/servicios/equipos";
+import { formatearFechaHora } from "@/lib/formatear";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -26,7 +27,7 @@ export default async function EquipmentPage() {
         <p className="text-sm text-zinc-500">Bitácora digital de uso de equipos</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
         {equiposConEstado.map((eq) => (
             <div key={eq.id} className="rounded-xl bg-white border border-zinc-200 p-4">
               <div className="flex items-start justify-between">
@@ -72,28 +73,30 @@ export default async function EquipmentPage() {
         {usage.length === 0 ? (
           <p className="text-sm text-zinc-400">Sin registros</p>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="border-b border-zinc-200">
-              <tr>
-                <th className="text-left py-2 text-zinc-500 font-medium">Equipo</th>
-                <th className="text-left py-2 text-zinc-500 font-medium">Usuario</th>
-                <th className="text-left py-2 text-zinc-500 font-medium">Inicio</th>
-                <th className="text-left py-2 text-zinc-500 font-medium">Fin</th>
-                <th className="text-left py-2 text-zinc-500 font-medium">Descripción</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-50">
-              {usage.map((u) => (
-                <tr key={u.id}>
-                  <td className="py-2 text-zinc-900">{u.equipmentName}</td>
-                  <td className="py-2 text-zinc-600">{u.userName}</td>
-                  <td className="py-2 text-zinc-600">{new Date(u.startAt).toLocaleString("es-MX")}</td>
-                  <td className="py-2 text-zinc-600">{u.endAt ? new Date(u.endAt).toLocaleString("es-MX") : "—"}</td>
-                  <td className="py-2 text-zinc-600">{u.description}</td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[500px]">
+              <thead className="border-b border-zinc-200">
+                <tr>
+                  <th className="text-left py-2 text-zinc-500 font-medium">Equipo</th>
+                  <th className="text-left py-2 text-zinc-500 font-medium">Usuario</th>
+                  <th className="text-left py-2 text-zinc-500 font-medium">Inicio</th>
+                  <th className="text-left py-2 text-zinc-500 font-medium">Fin</th>
+                  <th className="text-left py-2 text-zinc-500 font-medium">Descripción</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-zinc-50">
+                {usage.map((u) => (
+                  <tr key={u.id}>
+                    <td className="py-2 text-zinc-900">{u.equipmentName}</td>
+                    <td className="py-2 text-zinc-600">{u.userName}</td>
+                    <td className="py-2 text-zinc-600">{formatearFechaHora(u.startAt)}</td>
+                    <td className="py-2 text-zinc-600">{u.endAt ? formatearFechaHora(u.endAt) : "\u2014"}</td>
+                    <td className="py-2 text-zinc-600">{u.description}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </div>

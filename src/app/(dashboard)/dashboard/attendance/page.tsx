@@ -1,6 +1,7 @@
 import { verificarSesion } from "@/lib/autenticacion";
 import { obtenerAsistencia } from "@/lib/datos";
 import { registrarEntrada, registrarSalida } from "@/servicios/asistencia";
+import { formatearFechaHora, esMismoDia } from "@/lib/formatear";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -34,20 +35,14 @@ export default async function AttendancePage() {
       {isAdmin && (
         <div className="rounded-xl bg-white border border-zinc-200 p-5">
           <h2 className="font-semibold text-zinc-900 mb-3">Resumen de hoy</h2>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-3 md:gap-4">
             <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-2xl font-bold text-blue-700">{records.filter(r => {
-                const today = new Date();
-                return r.checkIn.toDateString() === today.toDateString();
-              }).length}</p>
+              <p className="text-2xl font-bold text-blue-700">{records.filter(r => esMismoDia(r.checkIn)).length}</p>
               <p className="text-xs text-blue-600">Entradas hoy</p>
             </div>
             <div className="text-center p-3 bg-green-50 rounded-lg border border-green-200">
               <p className="text-2xl font-bold text-green-700">{
-                records.filter(r => {
-                  const today = new Date();
-                  return r.checkIn.toDateString() === today.toDateString() && r.checkOut;
-                }).length
+                records.filter(r => esMismoDia(r.checkIn) && r.checkOut).length
               }</p>
               <p className="text-xs text-green-600">Salidas hoy</p>
             </div>
@@ -59,8 +54,8 @@ export default async function AttendancePage() {
         </div>
       )}
 
-      <div className="rounded-xl bg-white border border-zinc-200 overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="rounded-xl bg-white border border-zinc-200 overflow-x-auto">
+        <table className="w-full text-sm min-w-[640px]">
           <thead className="bg-zinc-50 border-b border-zinc-200">
             <tr>
               <th className="text-left px-4 py-3 font-medium text-zinc-500">Usuario</th>
@@ -74,9 +69,9 @@ export default async function AttendancePage() {
             {records.map((r) => (
               <tr key={r.id} className="hover:bg-zinc-50">
                 <td className="px-4 py-3 font-medium text-zinc-900">{r.userName}</td>
-                <td className="px-4 py-3 text-zinc-600">{new Date(r.checkIn).toLocaleString("es-MX")}</td>
+                <td className="px-4 py-3 text-zinc-600">{formatearFechaHora(r.checkIn)}</td>
                 <td className="px-4 py-3 text-zinc-600">
-                  {r.checkOut ? new Date(r.checkOut).toLocaleString("es-MX") : (
+                  {r.checkOut ? formatearFechaHora(r.checkOut) : (
                     <span className="text-green-600 font-medium">En laboratorio</span>
                   )}
                 </td>

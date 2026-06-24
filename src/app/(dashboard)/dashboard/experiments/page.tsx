@@ -1,5 +1,6 @@
 import { verificarSesion } from "@/lib/autenticacion";
 import { obtenerExperimentos } from "@/lib/datos";
+import { formatearFechaCorta } from "@/lib/formatear";
 import Link from "next/link";
 
 export default async function ExperimentsPage() {
@@ -30,8 +31,8 @@ export default async function ExperimentsPage() {
           </Link>
         </div>
       ) : (
-        <div className="rounded-xl bg-white border border-zinc-200 overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="rounded-xl bg-white border border-zinc-200 overflow-x-auto">
+          <table className="w-full text-sm min-w-[600px]">
             <thead className="bg-zinc-50 border-b border-zinc-200">
               <tr>
                 <th className="text-left px-4 py-3 font-medium text-zinc-500">Título</th>
@@ -55,8 +56,8 @@ export default async function ExperimentsPage() {
                       {exp.status === "completed" ? "Completado" : "En progreso"}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-zinc-400 text-xs">
-                    {new Date(exp.createdAt).toLocaleDateString("es-MX")}
+                  <td className="px-4 py-3 text-zinc-400 text-xs whitespace-nowrap">
+                    {formatearFechaCorta(exp.createdAt)}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Link href={`/dashboard/experiments/${exp.id}`} className="text-blue-600 hover:underline text-xs">

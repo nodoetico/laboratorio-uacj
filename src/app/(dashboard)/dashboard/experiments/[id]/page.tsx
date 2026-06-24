@@ -48,7 +48,7 @@ export default async function ExperimentDetailPage(props: { params: Promise<{ id
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 text-sm">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
         <div className="rounded-lg bg-zinc-50 p-3 border border-zinc-200"><span className="text-zinc-400">Masa</span><p className="font-medium">{experiment.materialMass} g</p></div>
         <div className="rounded-lg bg-zinc-50 p-3 border border-zinc-200"><span className="text-zinc-400">Volumen</span><p className="font-medium">{experiment.solutionVolume} mL</p></div>
         <div className="rounded-lg bg-zinc-50 p-3 border border-zinc-200"><span className="text-zinc-400">C₀</span><p className="font-medium">{experiment.initialConcentration}</p></div>

@@ -1,6 +1,7 @@
 import { verificarSesion } from "@/lib/autenticacion";
 import { redirect } from "next/navigation";
 import { SidebarNav } from "./SidebarClient";
+import { MobileMenu } from "./MobileMenu";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await verificarSesion();
@@ -10,15 +11,20 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="flex min-h-screen bg-zinc-50">
-      <SidebarWidget isAdmin={isAdmin} />
-      <main className="flex-1 p-6 overflow-auto">{children}</main>
+      <aside className="hidden md:flex w-64 bg-white border-r border-zinc-200 flex-col fixed md:static inset-y-0 left-0 z-40">
+        <SidebarWidget isAdmin={isAdmin} />
+      </aside>
+      <div className="flex-1 flex flex-col min-w-0">
+        <MobileMenu isAdmin={isAdmin} />
+        <main className="flex-1 p-4 md:p-6 overflow-auto">{children}</main>
+      </div>
     </div>
   );
 }
 
 function SidebarWidget({ isAdmin }: { isAdmin: boolean }) {
   return (
-    <aside className="w-64 bg-white border-r border-zinc-200 flex flex-col">
+    <>
       <div className="p-4 border-b border-zinc-200">
         <h2 className="text-lg font-bold text-zinc-900">LabControl</h2>
         <p className="text-xs text-zinc-500">{isAdmin ? "Administrador" : "Estudiante"}</p>
@@ -34,7 +40,7 @@ function SidebarWidget({ isAdmin }: { isAdmin: boolean }) {
           </button>
         </form>
       </div>
-    </aside>
+    </>
   );
 }
 

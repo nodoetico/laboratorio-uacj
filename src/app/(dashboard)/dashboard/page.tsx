@@ -1,5 +1,6 @@
 import { verificarSesion } from "@/lib/autenticacion";
 import { obtenerExperimentos, obtenerUsuarios, obtenerAsistencia, obtenerEquipos } from "@/lib/datos";
+import { formatearHora, esMismoDia } from "@/lib/formatear";
 import Link from "next/link";
 
 export default async function DashboardPage() {
@@ -15,10 +16,7 @@ export default async function DashboardPage() {
   const activeExperiments = experiments.filter((e) => e.status === "in_progress");
   const completedExperiments = experiments.filter((e) => e.status === "completed");
 
-  const today = new Date();
-  const todayEntries = attendance.filter((r) =>
-    r.checkIn.toDateString() === today.toDateString()
-  );
+  const todayEntries = attendance.filter((r) => esMismoDia(r.checkIn));
   const inLab = todayEntries.filter((r) => !r.checkOut);
   const checkedOut = todayEntries.filter((r) => r.checkOut);
 
@@ -31,7 +29,7 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <StatCard label="Experimentación" value={`${activeExperiments.length} activos`} sub={`${completedExperiments.length} completados`} color="blue" />
         <StatCard label="Equipos" value={`${equipments.length} registrados`} sub="Ver estado" color="green" />
         <StatCard label="Usuarios" value={`${users.length} registrados`} sub="Estudiantes y personal" color="purple" />
@@ -55,7 +53,7 @@ export default async function DashboardPage() {
                       <span className="w-2 h-2 rounded-full bg-green-500" />
                       <span className="text-sm font-medium text-zinc-900">{r.userName}</span>
                     </div>
-                    <span className="text-xs text-zinc-400">{new Date(r.checkIn).toLocaleTimeString("es-MX", { hour: '2-digit', minute: '2-digit' })}</span>
+                    <span className="text-xs text-zinc-400">{formatearHora(r.checkIn)}</span>
                   </div>
                 ))}
               </div>
