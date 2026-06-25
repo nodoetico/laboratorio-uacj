@@ -15,12 +15,32 @@ export default async function ExperimentsPage() {
           <h1 className="text-2xl font-bold text-zinc-900">Experimentación</h1>
           <p className="text-sm text-zinc-500">Registro de datos cinéticos</p>
         </div>
-        <Link
-          href="/dashboard/experiments/new"
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-        >
-          + Nuevo experimento
-        </Link>
+        <div className="flex items-center gap-2">
+          {experiments.filter((e) => e.status === "completed").length > 0 && (
+            <div className="flex items-center gap-1">
+              <a
+                href="/api/exportar/experimentos?formato=excel"
+                target="_blank"
+                className="rounded-lg border border-green-300 bg-green-50 px-3 py-2 text-sm font-medium text-green-700 hover:bg-green-100 transition-colors"
+              >
+                Excel
+              </a>
+              <a
+                href="/api/exportar/experimentos?formato=pdf"
+                target="_blank"
+                className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100 transition-colors"
+              >
+                PDF
+              </a>
+            </div>
+          )}
+          <Link
+            href="/dashboard/experiments/new"
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+          >
+            + Nuevo experimento
+          </Link>
+        </div>
       </div>
 
       {experiments.length === 0 ? (

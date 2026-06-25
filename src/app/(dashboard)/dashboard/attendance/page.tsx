@@ -20,16 +20,36 @@ export default async function AttendancePage() {
           <h1 className="text-2xl font-bold text-zinc-900">Asistencia</h1>
           <p className="text-sm text-zinc-500">Registro de entrada y salida del laboratorio</p>
         </div>
-        <form action={hasOpenSession ? handleRegistrarSalida : handleRegistrarEntrada}>
-          <button type="submit"
-            className={`rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors ${
-              hasOpenSession
-                ? "bg-red-600 hover:bg-red-700"
-                : "bg-blue-600 hover:bg-blue-700"
-            }`}>
-            {hasOpenSession ? "Registrar salida" : "Registrar entrada"}
-          </button>
-        </form>
+        <div className="flex items-center gap-2">
+          {records.length > 0 && (
+            <div className="flex items-center gap-1">
+              <a
+                href="/api/exportar/asistencia?formato=excel"
+                target="_blank"
+                className="rounded-lg border border-green-300 bg-green-50 px-3 py-2 text-sm font-medium text-green-700 hover:bg-green-100 transition-colors"
+              >
+                Excel
+              </a>
+              <a
+                href="/api/exportar/asistencia?formato=pdf"
+                target="_blank"
+                className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100 transition-colors"
+              >
+                PDF
+              </a>
+            </div>
+          )}
+          <form action={hasOpenSession ? handleRegistrarSalida : handleRegistrarEntrada}>
+            <button type="submit"
+              className={`rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors ${
+                hasOpenSession
+                  ? "bg-red-600 hover:bg-red-700"
+                  : "bg-blue-600 hover:bg-blue-700"
+              }`}>
+              {hasOpenSession ? "Registrar salida" : "Registrar entrada"}
+            </button>
+          </form>
+        </div>
       </div>
 
       {isAdmin && (
