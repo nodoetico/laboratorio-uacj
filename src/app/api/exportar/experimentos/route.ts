@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error al exportar:", error);
-    return NextResponse.json({ error: "Error al generar el archivo de exportación" }, { status: 500 });
+    const mensaje = error instanceof Error ? error.message : "Error desconocido";
+    return NextResponse.json({ error: mensaje }, { status: 500 });
   }
 }
