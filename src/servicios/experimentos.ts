@@ -65,6 +65,38 @@ export async function agregarMedicion(
   return medicion;
 }
 
+export async function eliminarExperimento(
+  usuarioId: number,
+  role: string,
+  experimentoId: number
+) {
+  if (role !== "ADMIN") throw new Error("Solo el administrador puede eliminar experimentos");
+
+  const experimento = await prisma.experiment.findUnique({
+    where: { id: experimentoId },
+    select: { title: true },
+  });
+  if (!experimento) throw new Error("Experimento no encontrado");
+
+  await prisma.measurement.deleteMany({
+    where: { replicate: { experimentId: experimentoId } },
+  });
+  await prisma.experimentReplicate.deleteMany({
+    where: { experimentId: experimentoId },
+  });
+  await prisma.experiment.delete({ where: { id: experimentoId } });
+
+  await registrarAuditoria(
+    usuarioId,
+    "ELIMINAR",
+    "Experimento",
+    experimentoId,
+    `Experimento "${experimento.title}" eliminado por administrador`
+  );
+
+  return { success: true };
+}
+
 export async function finalizarExperimento(
   usuarioId: number,
   experimentoId: number

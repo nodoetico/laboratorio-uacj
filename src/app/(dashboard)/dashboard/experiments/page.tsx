@@ -2,11 +2,13 @@ import { verificarSesion } from "@/lib/autenticacion";
 import { obtenerExperimentos } from "@/lib/datos";
 import { formatearFechaCorta } from "@/lib/formatear";
 import Link from "next/link";
+import { DeleteButton } from "./DeleteButton";
 
 export default async function ExperimentsPage() {
   const session = await verificarSesion();
   const isAdmin = session?.role === "ADMIN";
   const experiments = await obtenerExperimentos(isAdmin ? undefined : session?.userId);
+  const hasCompleted = experiments.filter((e) => e.status === "completed").length > 0;
 
   return (
     <div className="space-y-5">
@@ -16,7 +18,7 @@ export default async function ExperimentsPage() {
           <p className="text-sm text-zinc-500">Registro de datos cinéticos</p>
         </div>
         <div className="flex items-center gap-2">
-          {experiments.filter((e) => e.status === "completed").length > 0 && (
+          {isAdmin && hasCompleted && (
             <div className="flex items-center gap-1">
               <a
                 href="/api/exportar/experimentos?formato=excel"
@@ -79,10 +81,11 @@ export default async function ExperimentsPage() {
                   <td className="px-4 py-3 text-zinc-400 text-xs whitespace-nowrap">
                     {formatearFechaCorta(exp.createdAt)}
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-4 py-3 text-right flex items-center justify-end gap-2">
                     <Link href={`/dashboard/experiments/${exp.id}`} className="text-blue-600 hover:underline text-xs">
                       Ver detalle
                     </Link>
+                    {isAdmin && <DeleteButton experimentId={exp.id} />}
                   </td>
                 </tr>
               ))}
