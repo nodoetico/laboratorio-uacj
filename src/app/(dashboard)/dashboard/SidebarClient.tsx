@@ -7,6 +7,7 @@ import { ThemeToggle } from "@/lib/ThemeProvider";
 const links = [
   { href: "/dashboard", label: "Inicio", icon: "📊" },
   { href: "/dashboard/experiments", label: "Experimentación", icon: "🔬" },
+  { href: "/dashboard/reagents", label: "Reactivos", icon: "🧪" },
   { href: "/dashboard/equipment", label: "Equipos", icon: "⚙️" },
   { href: "/dashboard/attendance", label: "Asistencia", icon: "📋" },
 ];

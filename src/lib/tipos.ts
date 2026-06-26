@@ -60,3 +60,29 @@ export type AsistenciaDTO = {
   type: string;
   duration: number | null;
 };
+
+export type ReactivoDTO = {
+  id: number;
+  name: string;
+  description: string | null;
+  quantity: number;
+  unit: string;
+  minStock: number;
+  location: string | null;
+  expiresAt: Date | null;
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  stockBajo: boolean;
+};
+
+export type MovimientoReactivoDTO = {
+  id: number;
+  reagentId: number;
+  userId: number;
+  userName: string;
+  type: string;
+  quantity: number;
+  notes: string | null;
+  createdAt: Date;
+};

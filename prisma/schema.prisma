@@ -27,6 +27,7 @@ model User {
   attendance     Attendance[]
   auditLogs      AuditLog[]
   activeSessions ActiveSession[]
+  reagentMovements ReagentMovement[]
 }
 
 model Experiment {
@@ -109,6 +110,35 @@ model ActiveSession {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Reagent {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  quantity    Float    @default(0)
+  unit        String   @default("g")
+  minStock    Float    @default(0)
+  location    String?
+  expiresAt   DateTime?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  movements ReagentMovement[]
+}
+
+model ReagentMovement {
+  id        Int      @id @default(autoincrement())
+  reagentId Int
+  userId    Int
+  type      String   // IN | OUT
+  quantity  Float
+  notes     String?
+  createdAt DateTime @default(now())
+
+  reagent Reagent @relation(fields: [reagentId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id])
 }
 
 model AuditLog {

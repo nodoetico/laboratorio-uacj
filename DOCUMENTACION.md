@@ -14,8 +14,9 @@
    - [4.2 Dashboard](#42-dashboard)
    - [4.3 Experimentación](#43-experimentación)
    - [4.4 Equipos](#44-equipos)
-   - [4.5 Asistencia](#45-asistencia)
-   - [4.6 Auditoría (ISO 17025)](#46-auditoría-iso-17025)
+    - [4.5 Reactivos](#45-reactivos)
+    - [4.6 Asistencia](#46-asistencia)
+    - [4.7 Auditoría (ISO 17025)](#47-auditoría-iso-17025)
 5. [Roles de Usuario](#5-roles-de-usuario)
 6. [API](#6-api)
 7. [ISO 17025 — Trazabilidad y Calidad](#7-iso-17025--trazabilidad-y-calidad)
@@ -206,7 +207,26 @@ Bitácora digital de uso de equipos del laboratorio.
 - Historial de los últimos 50 usos registrados
 - Alerta cuando el equipo necesita mantenimiento (configurable, default 180 días)
 
-### 4.5 Asistencia
+### 4.5 Reactivos
+
+**Archivos:** `src/app/(dashboard)/dashboard/reagents/*`
+
+Módulo de inventario de reactivos y consumibles del laboratorio.
+
+**Funcionalidades:**
+- Listado de reactivos con indicador visual de stock (verde = OK, rojo = stock bajo)
+- Creación de nuevos reactivos con: nombre, descripción, cantidad, unidad, stock mínimo, ubicación física y fecha de vencimiento
+- Registro de movimientos de entrada (reposición) y salida (consumo)
+- Historial completo de movimientos por reactivo con usuario responsable
+- Alerta de stock bajo en el Dashboard del administrador y en la página de inventario
+- Trazabilidad ISO 17025: cada movimiento queda registrado en AuditLog
+
+**Reglas de negocio:**
+- Solo el administrador puede crear reactivos y registrar movimientos
+- No se permite registrar una salida si el stock es insuficiente
+- El stock se actualiza automáticamente al registrar un movimiento (transacción atómica)
+
+### 4.6 Asistencia
 
 **Archivo:** `src/app/(dashboard)/dashboard/attendance/page.tsx`
 
@@ -218,7 +238,7 @@ Control de entrada y salida del laboratorio.
 - Cálculo automático de duración en horas
 - Historial de los últimos 100 registros
 
-### 4.6 Auditoría (ISO 17025)
+### 4.7 Auditoría (ISO 17025)
 
 **Archivo:** `src/servicios/auditoria.ts`
 

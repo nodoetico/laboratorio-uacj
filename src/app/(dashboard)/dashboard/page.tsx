@@ -1,6 +1,7 @@
 import { verificarSesion } from "@/lib/autenticacion";
 import { obtenerExperimentos, obtenerUsuarios, obtenerAsistencia, obtenerEquipos } from "@/lib/datos";
 import { obtenerSesionesActivas, contarSesionesActivas, limpiarSesionesExpiradas } from "@/lib/sesionesActivas";
+import { obtenerReactivos, contarReactivosStockBajo } from "@/servicios/reactivos";
 import { formatearHora, esMismoDia } from "@/lib/formatear";
 import Link from "next/link";
 
@@ -29,6 +30,11 @@ export default async function DashboardPage() {
     ? await Promise.all([obtenerSesionesActivas(), contarSesionesActivas()])
     : [[], 0];
 
+  const [reagents, stockBajoCount] = await Promise.all([
+    obtenerReactivos(),
+    contarReactivosStockBajo(),
+  ]);
+
   return (
     <div className="space-y-6">
       <div>
@@ -38,9 +44,10 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 md:gap-4">
         <StatCard label="Experimentación" value={`${activeExperiments.length} activos`} sub={`${completedExperiments.length} completados`} color="blue" />
         <StatCard label="Equipos" value={`${equipments.length} registrados`} sub="Ver estado" color="green" />
+        <StatCard label="Reactivos" value={`${reagents.length} registrados`} sub={stockBajoCount > 0 ? `${stockBajoCount} con stock bajo` : "Stock suficiente"} color={stockBajoCount > 0 ? "red" : "teal"} />
         {isAdmin && <StatCard label="Usuarios" value={`${users.length} registrados`} sub="Estudiantes y personal" color="purple" />}
         <StatCard label="Hoy en laboratorio" value={`${inLab.length} presentes`} sub={`${checkedOut.length} salidas · ${todayEntries.length} total`} color="amber" />
         {isAdmin && <StatCard label="Sesiones activas" value={`${sessionCount} ahora`} sub="Usuarios en el sistema" color="cyan" />}
@@ -95,6 +102,30 @@ export default async function DashboardPage() {
               )}
             </section>
           </div>
+
+          {stockBajoCount > 0 && (
+            <section className="rounded-xl border border-red-200 bg-red-50 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-sm font-semibold text-red-700">Reactivos con stock bajo</h2>
+                <Link href="/dashboard/reagents" className="text-xs text-red-600 hover:underline">
+                  Ver inventario
+                </Link>
+              </div>
+              {reagents.filter((r) => r.stockBajo).slice(0, 5).map((r) => (
+                <div key={r.id} className="flex items-center justify-between text-sm py-1">
+                  <Link
+                    href={`/dashboard/reagents/${r.id}`}
+                    className="text-red-700 hover:underline font-medium"
+                  >
+                    {r.name}
+                  </Link>
+                  <span className="text-red-600 text-xs">
+                    {r.quantity} {r.unit} / min. {r.minStock} {r.unit}
+                  </span>
+                </div>
+              ))}
+            </section>
+          )}
 
           <section className="rounded-xl bg-white border border-zinc-200 p-5">
             <h2 className="font-semibold text-zinc-900 mb-3">Experimentación en curso</h2>
@@ -153,6 +184,11 @@ export default async function DashboardPage() {
             <p className="font-medium text-sm text-zinc-900 mt-1">Uso de equipos</p>
             <p className="text-xs text-zinc-400">Bitácora digital</p>
           </Link>
+          <Link href="/dashboard/reagents" className="rounded-lg border border-zinc-200 p-4 hover:border-teal-300 hover:bg-teal-50 transition-colors">
+            <span className="text-lg">🧪</span>
+            <p className="font-medium text-sm text-zinc-900 mt-1">Reactivos</p>
+            <p className="text-xs text-zinc-400">Inventario de stock</p>
+          </Link>
           <Link href="/dashboard/attendance" className="rounded-lg border border-zinc-200 p-4 hover:border-purple-300 hover:bg-purple-50 transition-colors">
             <span className="text-lg">📋</span>
             <p className="font-medium text-sm text-zinc-900 mt-1">Asistencia</p>
@@ -171,6 +207,8 @@ function StatCard({ label, value, sub, color }: { label: string; value: string; 
     purple: "border-purple-200 bg-purple-50",
     amber: "border-amber-200 bg-amber-50",
     cyan: "border-cyan-200 bg-cyan-50",
+    teal: "border-teal-200 bg-teal-50",
+    red: "border-red-200 bg-red-50",
   };
   return (
     <div className={`rounded-xl border p-4 ${colors[color]}`}>
