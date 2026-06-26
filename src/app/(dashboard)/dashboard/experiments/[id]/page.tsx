@@ -58,7 +58,7 @@ export default async function ExperimentDetailPage(props: { params: Promise<{ id
         <div className="rounded-lg bg-zinc-50 p-3 border border-zinc-200"><span className="text-zinc-400">C₀</span><p className="font-medium">{experiment.initialConcentration}</p></div>
       </div>
 
-      <div className="rounded-xl bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 p-4 text-sm text-blue-800 dark:text-blue-200">
+      <div className="rounded-xl bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-700 p-4 text-sm text-blue-800 dark:text-blue-100">
         <p><strong>Cálculos cinéticos disponibles.</strong> Al agregar mediciones, cada réplica muestra automáticamente K, R², vida media y ln(A₀) obtenidos por regresión lineal. Presiona <strong>?</strong> para más detalles.</p>
       </div>
 
@@ -97,30 +97,30 @@ export default async function ExperimentDetailPage(props: { params: Promise<{ id
 
           {calc.K !== null ? (
             <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="rounded-lg bg-blue-50 border border-blue-200 p-2.5 text-center">
-                <span className="text-xs text-blue-500 font-medium">K (h⁻¹)</span>
-                <p className="text-sm font-bold text-blue-700">{calc.K}</p>
+              <div className="rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-700 p-2.5 text-center">
+                <span className="text-xs text-blue-500 dark:text-blue-300 font-medium">K (h⁻¹)</span>
+                <p className="text-sm font-bold text-blue-700 dark:text-blue-100">{calc.K}</p>
               </div>
-              <div className="rounded-lg bg-blue-50 border border-blue-200 p-2.5 text-center">
-                <span className="text-xs text-blue-500 font-medium">R²</span>
-                <p className="text-sm font-bold text-blue-700">{calc.R2}</p>
+              <div className="rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-700 p-2.5 text-center">
+                <span className="text-xs text-blue-500 dark:text-blue-300 font-medium">R²</span>
+                <p className="text-sm font-bold text-blue-700 dark:text-blue-100">{calc.R2}</p>
               </div>
-              <div className="rounded-lg bg-blue-50 border border-blue-200 p-2.5 text-center">
-                <span className="text-xs text-blue-500 font-medium">Vida media (h)</span>
-                <p className="text-sm font-bold text-blue-700">{calc.vidaMedia}</p>
+              <div className="rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-700 p-2.5 text-center">
+                <span className="text-xs text-blue-500 dark:text-blue-300 font-medium">Vida media (h)</span>
+                <p className="text-sm font-bold text-blue-700 dark:text-blue-100">{calc.vidaMedia}</p>
               </div>
-              <div className="rounded-lg bg-blue-50 border border-blue-200 p-2.5 text-center">
-                <span className="text-xs text-blue-500 font-medium">ln(A₀)</span>
-                <p className="text-sm font-bold text-blue-700">{calc.lnA0}</p>
+              <div className="rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-700 p-2.5 text-center">
+                <span className="text-xs text-blue-500 dark:text-blue-300 font-medium">ln(A₀)</span>
+                <p className="text-sm font-bold text-blue-700 dark:text-blue-100">{calc.lnA0}</p>
               </div>
             </div>
           ) : calc.puntosValidos >= 1 ? (
-            <div className="mt-3 rounded-lg bg-yellow-50 border border-yellow-200 p-2.5 text-center">
-              <span className="text-xs text-yellow-600">{calc.mensaje} ({calc.puntosValidos} válida{calc.puntosValidos !== 1 ? "s" : ""})</span>
+            <div className="mt-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 p-2.5 text-center">
+              <span className="text-xs text-yellow-600 dark:text-yellow-200">{calc.mensaje} ({calc.puntosValidos} válida{calc.puntosValidos !== 1 ? "s" : ""})</span>
             </div>
           ) : (
-            <div className="mt-3 rounded-lg bg-zinc-50 border border-zinc-200 p-2.5 text-center">
-              <span className="text-xs text-zinc-400">Agrega mediciones para ver cálculos cinéticos</span>
+            <div className="mt-3 rounded-lg bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 p-2.5 text-center">
+              <span className="text-xs text-zinc-400 dark:text-zinc-500">Agrega mediciones para ver cálculos cinéticos</span>
             </div>
           )}
 
