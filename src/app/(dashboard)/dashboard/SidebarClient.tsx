@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { ThemeToggle } from "@/lib/ThemeProvider";
 
 const links = [
   { href: "/dashboard", label: "Inicio", icon: "📊" },
@@ -35,6 +36,9 @@ export function SidebarNav() {
           </Link>
         );
       })}
+      <div className="pt-2">
+        <ThemeToggle />
+      </div>
     </nav>
   );
 }

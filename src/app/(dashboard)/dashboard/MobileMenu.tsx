@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { SidebarNav } from "./SidebarClient";
+import { ThemeToggle } from "@/lib/ThemeProvider";
 
 export function MobileMenu({ isAdmin }: { isAdmin: boolean }) {
   const [open, setOpen] = useState(false);
@@ -45,7 +46,8 @@ export function MobileMenu({ isAdmin }: { isAdmin: boolean }) {
               </button>
             </div>
             <SidebarNav />
-            <div className="p-3 border-t border-zinc-200">
+            <div className="p-3 border-t border-zinc-200 space-y-1">
+              <ThemeToggle />
               <form action="/dashboard" method="get">
                 <button
                   type="submit"

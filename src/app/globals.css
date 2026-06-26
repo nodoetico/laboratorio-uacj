@@ -12,13 +12,6 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
@@ -36,4 +29,57 @@ body {
 
 .animate-slide-in {
   animation: slide-in 0.2s ease-out;
+}
+
+.dark {
+  --background: #09090b;
+  --foreground: #fafafa;
+
+  --color-zinc-50: #18181b;
+  --color-zinc-100: #27272a;
+  --color-zinc-200: #3f3f46;
+  --color-zinc-300: #52525b;
+  --color-zinc-400: #71717a;
+  --color-zinc-500: #a1a1aa;
+  --color-zinc-600: #d4d4d8;
+  --color-zinc-700: #e4e4e7;
+  --color-zinc-800: #f4f4f5;
+  --color-zinc-900: #fafafa;
+
+  --color-blue-50: #1e3a5f;
+  --color-blue-600: #60a5fa;
+  --color-blue-700: #93c5fd;
+
+  --color-green-50: #14532d;
+  --color-green-100: #166534;
+  --color-green-300: #86efac;
+  --color-green-600: #4ade80;
+  --color-green-700: #86efac;
+
+  --color-red-50: #450a0a;
+  --color-red-100: #450a0a;
+  --color-red-300: #fca5a5;
+  --color-red-500: #fca5a5;
+  --color-red-600: #fca5a5;
+  --color-red-700: #fca5a5;
+  --color-red-800: #fecaca;
+
+  --color-yellow-100: #713f12;
+  --color-yellow-700: #fde047;
+  --color-yellow-800: #fef08a;
+
+  --color-amber-50: #451a03;
+  --color-amber-200: #92400e;
+  --color-amber-300: #b45309;
+
+  --color-purple-50: #2e1065;
+  --color-purple-100: #3b0764;
+  --color-purple-200: #4c1d95;
+  --color-purple-300: #5b21b6;
+  --color-purple-600: #a78bfa;
+  --color-purple-700: #c4b5fd;
+}
+
+.dark .bg-white {
+  background-color: #18181b;
 }
