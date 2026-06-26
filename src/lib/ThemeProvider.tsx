@@ -2,28 +2,27 @@
 
 import { useEffect, useState } from "react";
 
+function inicializarModoOscuro(): boolean {
+  if (typeof window === "undefined") return false;
+  const saved = localStorage.getItem("theme");
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  return saved === "dark" || (!saved && prefersDark);
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [mounted, setMounted] = useState(false);
-  const [dark, setDark] = useState(false);
+  const [dark] = useState(inicializarModoOscuro);
 
   useEffect(() => {
-    const saved = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const isDark = saved === "dark" || (!saved && prefersDark);
-    setDark(isDark);
-    document.documentElement.classList.toggle("dark", isDark);
-    setMounted(true);
-  }, []);
+    document.documentElement.classList.toggle("dark", dark);
+  }, [dark]);
 
   return <>{children}</>;
 }
 
 export function ThemeToggle() {
-  const [dark, setDark] = useState(false);
-
-  useEffect(() => {
-    setDark(document.documentElement.classList.contains("dark"));
-  }, []);
+  const [dark, setDark] = useState(() =>
+    document.documentElement.classList.contains("dark")
+  );
 
   function toggle() {
     const next = !dark;

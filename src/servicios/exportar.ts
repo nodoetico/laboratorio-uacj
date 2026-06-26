@@ -137,7 +137,7 @@ export async function exportarExperimentosPDF(experimentos: ExperimentoDTO[]): P
 
   doc.fontSize(11).font("Helvetica-Bold").text("Resumen");
   doc.moveDown(0.3);
-  let y = drawPdfTable(doc, headers, rows, doc.y);
+  const y = drawPdfTable(doc, headers, rows, doc.y);
   doc.y = y + 10;
 
   for (const exp of experimentos) {

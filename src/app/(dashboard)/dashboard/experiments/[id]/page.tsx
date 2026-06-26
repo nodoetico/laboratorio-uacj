@@ -3,7 +3,7 @@ import { obtenerExperimento } from "@/lib/datos";
 import { agregarMedicion, finalizarExperimento } from "@/servicios/experimentos";
 import { calcularCinetico } from "@/servicios/cineticos";
 import { prisma } from "@/lib/bd";
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { HelpButton } from "./HelpModal";
@@ -14,10 +14,10 @@ export default async function ExperimentDetailPage(props: { params: Promise<{ id
   if (!session) redirect("/login");
 
   const experimentId = parseInt(id);
-  if (isNaN(experimentId)) return <p className="text-zinc-400">ID de experimento inválido</p>;
+  if (isNaN(experimentId)) notFound();
 
   const experiment = await obtenerExperimento(experimentId);
-  if (!experiment) return <p className="text-zinc-400">Experimento no encontrado</p>;
+  if (!experiment) notFound();
 
   const isOwner = experiment.user.id === session.userId || session.role === "ADMIN";
   if (!isOwner) return <p className="text-zinc-400">No tienes acceso a este experimento</p>;

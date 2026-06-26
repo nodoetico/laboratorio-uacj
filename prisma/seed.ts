@@ -3,11 +3,19 @@ import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
 
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+  console.error("ERROR: DATABASE_URL no está definida en las variables de entorno");
+  process.exit(1);
+}
+
 const prisma = new PrismaClient({
-  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }),
+  adapter: new PrismaPg({ connectionString: databaseUrl }),
 });
 
 async function main() {
+  await prisma.$connect();
+  console.log("Conexión a la base de datos establecida");
   const password = await bcrypt.hash("admin123", 12);
 
   await prisma.user.upsert({

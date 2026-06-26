@@ -200,18 +200,21 @@ export default async function DashboardPage() {
   );
 }
 
-function StatCard({ label, value, sub, color }: { label: string; value: string; sub: string; color: string }) {
-  const colors: Record<string, string> = {
-    blue: "border-blue-200 bg-blue-50",
-    green: "border-green-200 bg-green-50",
-    purple: "border-purple-200 bg-purple-50",
-    amber: "border-amber-200 bg-amber-50",
-    cyan: "border-cyan-200 bg-cyan-50",
-    teal: "border-teal-200 bg-teal-50",
-    red: "border-red-200 bg-red-50",
-  };
+type ColorStat = "blue" | "green" | "purple" | "amber" | "cyan" | "teal" | "red";
+
+const COLORS_STAT: Record<ColorStat, string> = {
+  blue: "border-blue-200 bg-blue-50",
+  green: "border-green-200 bg-green-50",
+  purple: "border-purple-200 bg-purple-50",
+  amber: "border-amber-200 bg-amber-50",
+  cyan: "border-cyan-200 bg-cyan-50",
+  teal: "border-teal-200 bg-teal-50",
+  red: "border-red-200 bg-red-50",
+};
+
+function StatCard({ label, value, sub, color }: { label: string; value: string; sub: string; color: ColorStat }) {
   return (
-    <div className={`rounded-xl border p-4 ${colors[color]}`}>
+    <div className={`rounded-xl border p-4 ${COLORS_STAT[color]}`}>
       <p className="text-xs font-medium text-zinc-500 uppercase tracking-wide">{label}</p>
       <p className="text-xl font-bold text-zinc-900 mt-1">{value}</p>
       <p className="text-xs text-zinc-400 mt-0.5">{sub}</p>
