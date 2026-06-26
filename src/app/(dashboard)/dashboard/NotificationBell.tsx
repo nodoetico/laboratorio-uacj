@@ -61,7 +61,7 @@ export function NotificationBell({
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="relative p-2 rounded-lg text-zinc-600 hover:bg-zinc-100 transition-colors"
+        className="relative p-2 rounded-lg text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800 transition-colors"
         aria-label="Notificaciones"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -76,9 +76,9 @@ export function NotificationBell({
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-zinc-200 z-50 max-h-96 flex flex-col">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-200">
-            <h3 className="text-sm font-semibold text-zinc-900">Notificaciones</h3>
+        <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-zinc-800 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-700 z-50 max-h-96 flex flex-col">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-200 dark:border-zinc-700">
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Notificaciones</h3>
             {noLeidas > 0 && (
               <button
                 onClick={handleMarcarTodasLeidas}
@@ -91,14 +91,14 @@ export function NotificationBell({
 
           <div className="overflow-y-auto flex-1">
             {notificaciones.length === 0 ? (
-              <p className="text-sm text-zinc-400 text-center py-8">Sin notificaciones</p>
+              <p className="text-sm text-zinc-400 dark:text-zinc-500 text-center py-8">Sin notificaciones</p>
             ) : (
               notificaciones.map((n) => (
                 <button
                   key={n.id}
                   onClick={() => handleMarcarLeida(n.id, n.link)}
-                  className={`w-full text-left px-4 py-3 border-b border-zinc-50 hover:bg-zinc-50 transition-colors ${
-                    !n.read ? "bg-blue-50/60" : ""
+                  className={`w-full text-left px-4 py-3 border-b border-zinc-50 dark:border-zinc-700/50 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 transition-colors ${
+                    !n.read ? "bg-blue-50/60 dark:bg-blue-900/20" : ""
                   }`}
                 >
                   <div className="flex items-start gap-2">
@@ -106,11 +106,11 @@ export function NotificationBell({
                       <span className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 shrink-0" />
                     )}
                     <div className="min-w-0 flex-1">
-                      <p className={`text-sm ${!n.read ? "font-semibold text-zinc-900" : "text-zinc-700"}`}>
+                      <p className={`text-sm ${!n.read ? "font-semibold text-zinc-900 dark:text-zinc-100" : "text-zinc-700 dark:text-zinc-300"}`}>
                         {n.title}
                       </p>
-                      <p className="text-xs text-zinc-400 mt-0.5 line-clamp-2">{n.message}</p>
-                      <p className="text-[10px] text-zinc-300 mt-1">{formatearFechaCorta(n.createdAt)}</p>
+                      <p className="text-xs text-zinc-400 dark:text-zinc-400 mt-0.5 line-clamp-2">{n.message}</p>
+                      <p className="text-[10px] text-zinc-300 dark:text-zinc-500 mt-1">{formatearFechaCorta(n.createdAt)}</p>
                     </div>
                   </div>
                 </button>

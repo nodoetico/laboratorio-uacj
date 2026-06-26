@@ -9,7 +9,7 @@ export function HelpButton() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition-colors"
+        className="rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 px-3 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
         title="Ayuda"
       >
         ?
@@ -18,12 +18,12 @@ export function HelpButton() {
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-black/40" onClick={() => setOpen(false)} />
-          <div className="relative bg-white rounded-2xl shadow-xl border border-zinc-200 max-w-lg w-full max-h-[80vh] overflow-y-auto p-6">
+          <div className="relative bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-700 max-w-lg w-full max-h-[80vh] overflow-y-auto p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-zinc-900">Cómo usar el sistema</h2>
+              <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Cómo usar el sistema</h2>
               <button
                 onClick={() => setOpen(false)}
-                className="p-1 rounded-lg text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors"
+                className="p-1 rounded-lg text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
                 aria-label="Cerrar"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -32,19 +32,19 @@ export function HelpButton() {
               </button>
             </div>
 
-            <div className="space-y-4 text-sm text-zinc-700">
+            <div className="space-y-4 text-sm text-zinc-700 dark:text-zinc-300">
               <section>
-                <h3 className="font-semibold text-zinc-900 mb-1">Experimentación</h3>
+                <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">Experimentación</h3>
                 <p>Crea un experimento con tus parámetros iniciales. El sistema genera automáticamente 3 réplicas (triplicado).</p>
               </section>
 
               <section>
-                <h3 className="font-semibold text-zinc-900 mb-1">Mediciones</h3>
+                <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">Mediciones</h3>
                 <p>Agrega mediciones de tiempo (horas) y absorbancia en cada réplica. Necesitas al menos 2 mediciones válidas (A &gt; 0).</p>
               </section>
 
               <section>
-                <h3 className="font-semibold text-zinc-900 mb-1">Cálculos cinéticos</h3>
+                <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">Cálculos cinéticos</h3>
                 <p>Al agregar mediciones, el sistema calcula automáticamente:</p>
                 <ul className="list-disc pl-5 mt-1 space-y-0.5">
                   <li><strong>K</strong> — Constante de velocidad (h⁻¹)</li>
@@ -56,22 +56,22 @@ export function HelpButton() {
               </section>
 
               <section>
-                <h3 className="font-semibold text-zinc-900 mb-1">Finalizar experimento</h3>
+                <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">Finalizar experimento</h3>
                 <p>Cuando termines de agregar mediciones, presiona &quot;Finalizar experimento&quot;. El Dr. Torres podrá ver los resultados en su Dashboard.</p>
               </section>
 
               <section>
-                <h3 className="font-semibold text-zinc-900 mb-1">Asistencia</h3>
+                <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">Asistencia</h3>
                 <p>Registra tu entrada al laboratorio y no olvides registrar tu salida al irte.</p>
               </section>
 
               <section>
-                <h3 className="font-semibold text-zinc-900 mb-1">Equipos</h3>
+                <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">Equipos</h3>
                 <p>Registra el uso de equipos del laboratorio con descripción y horario.</p>
               </section>
 
               <section>
-                <h3 className="font-semibold text-zinc-900 mb-1">Reactivos (solo admin)</h3>
+                <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">Reactivos (solo admin)</h3>
                 <p>Administra el inventario de reactivos y registra movimientos de entrada/salida.</p>
               </section>
             </div>
