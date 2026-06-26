@@ -58,17 +58,21 @@ laboratorio-app/
 │   ├── app/                    # Rutas y páginas (Next.js App Router)
 │   │   ├── (auth)/             # Grupo de rutas públicas (login)
 │   │   ├── (dashboard)/        # Grupo de rutas protegidas (dashboard)
-│   │   └── api/                # API routes (sesión, logout)
-│   ├── componentes/            # Componentes reutilizables
+│   │   └── api/                # API routes (sesión, logout, heartbeat)
 │   ├── lib/                    # Capa de acceso a datos
-│   │   ├── auth.ts             # Autenticación JWT
-│   │   ├── dal.ts              # Data Access Layer (consultas)
-│   │   ├── db.ts               # Conexión Prisma
-│   │   └── types.ts            # Tipos compartidos
+│   │   ├── autenticacion.ts    # Autenticación JWT
+│   │   ├── bd.ts               # Conexión Prisma (adapter-pg)
+│   │   ├── datos.ts            # Data Access Layer (consultas)
+│   │   ├── formatear.ts        # Formateo de fechas (America/Ciudad_Juarez)
+│   │   ├── tipos.ts            # Tipos TypeScript
+│   │   ├── sesionesActivas.ts  # Gestión de sesiones activas (heartbeat)
+│   │   ├── HeartbeatClient.tsx # Cliente heartbeat (envío periódico)
+│   │   └── ThemeProvider.tsx   # Alternador de modo oscuro
 │   ├── servicios/              # Capa de servicios (arquitectura modular)
 │   │   ├── auditoria.ts        # Trazabilidad ISO 17025
 │   │   ├── experimentos.ts     # Gestión de experimentos
 │   │   ├── equipos.ts          # Gestión de equipos
+│   │   ├── reactivos.ts        # Inventario de reactivos
 │   │   └── asistencia.ts       # Control de asistencia
 │   └── generated/              # Cliente Prisma generado
 ├── prisma/
@@ -112,6 +116,9 @@ User (usuario)
 │       └── Measurement (medición tiempo/absorbancia)
 ├── EquipmentUsage (uso de equipo) → Equipment (equipo)
 ├── Attendance (asistencia check-in/out)
+├── ActiveSession (sesión activa con heartbeat)
+├── Reagent (reactivo)
+│   └── ReagentMovement (movimiento de entrada/salida)
 └── AuditLog (auditoría ISO 17025)
 ```
 
@@ -126,6 +133,9 @@ User (usuario)
 | **Equipment** | Equipos del laboratorio (5 registrados) |
 | **EquipmentUsage** | Registro de uso de equipos |
 | **Attendance** | Check-in / Check-out del laboratorio |
+| **ActiveSession** | Sesiones activas con heartbeat (usuario conectado) |
+| **Reagent** | Reactivos y consumibles del laboratorio |
+| **ReagentMovement** | Movimientos de entrada/salida de reactivos |
 | **AuditLog** | Trazabilidad de todas las operaciones (ISO 17025) |
 
 ---
@@ -153,14 +163,25 @@ User (usuario)
 
 **Archivo:** `src/app/(dashboard)/dashboard/page.tsx`
 
-Vista general del laboratorio para el administrador:
+Vista general del laboratorio con tarjetas de resumen (stat cards):
 
-- **En laboratorio ahora** — Lista de personas actualmente con check-in activo
-- **Experimentación en curso** — Experimentos activos con su estudiante y contaminante
-- **Usuarios registrados** — Todos los usuarios del sistema con su rol
-- **Acceso rápido** — Enlaces a Nuevo experimento, Equipos, Asistencia
+- **Experimentación** — Experimentos activos y completados
+- **Equipos** — Equipos registrados
+- **Reactivos** — Conteo y alerta de stock bajo
+- **Usuarios** — Usuarios registrados (solo admin)
+- **Hoy en laboratorio** — Asistencia del día (check-in activos, salidas, total)
+- **Sesiones activas** — Usuarios con el sistema abierto ahora (solo admin)
 
-Los estudiantes ven solo sus propios experimentos y estadísticas.
+Secciones para administrador:
+
+- **En laboratorio ahora** — Personas con check-in activo
+- **Sesiones activas** — Usuarios navegando en el sistema (heartbeat < 5 min)
+- **Reactivos con stock bajo** — Alerta roja con enlace directo al inventario
+- **Experimentación en curso** — Experimentos activos con estudiante y contaminante
+- **Usuarios registrados** — Lista de todos los usuarios del sistema
+- **Acceso rápido** — Enlaces a Nuevo experimento, Reactivos, Equipos, Asistencia
+
+Los estudiantes ven solo stat cards generales + acceso rápido.
 
 ### 4.3 Experimentación
 
@@ -252,6 +273,9 @@ Sistema de trazabilidad que registra todas las operaciones críticas:
 | REGISTRAR_USO | EquipmentUsage | Uso de equipo registrado |
 | ENTRADA | Attendance | Check-in al laboratorio |
 | SALIDA | Attendance | Check-out con duración calculada |
+| CREAR | Reagent | Reactivo creado en inventario |
+| ENTRADA_REACTIVO | ReagentMovement | Entrada (reposición) de reactivo |
+| SALIDA_REACTIVO | ReagentMovement | Salida (consumo) de reactivo |
 
 Cada registro de auditoría contiene:
 - **Usuario** que realizó la acción
@@ -270,7 +294,10 @@ Cada registro de auditoría contiene:
 - Visualización de todos los experimentos (activos y completados)
 - Lista de usuarios registrados
 - Quién está en el laboratorio ahora
+- Sesiones activas (quién tiene el sistema abierto)
 - Resumen de asistencia del día
+- Inventario de reactivos (crear, editar, registrar movimientos)
+- Alerta de stock bajo en Dashboard
 
 ### Estudiante (STUDENT)
 - Crea y gestiona sus propios experimentos
@@ -292,6 +319,7 @@ Cada registro de auditoría contiene:
 |---|---|---|
 | GET | `/api/auth/session` | Verificar sesión activa |
 | GET | `/api/auth/logout` | Cerrar sesión |
+| POST | `/api/auth/heartbeat` | Actualizar heartbeat de sesión activa |
 
 ### Server Actions (formularios)
 
@@ -305,6 +333,8 @@ Cada registro de auditoría contiene:
 | `experiments/[id]/page.tsx` | `completeExperiment` — Finalizar experimento |
 | `equipment/page.tsx` | `registerUsage` — Registrar uso de equipo |
 | `attendance/page.tsx` | `checkInAction` / `checkOutAction` — Asistencia |
+| `reagents/new/page.tsx` | `handleSubmit` — Crear reactivo |
+| `reagents/[id]/movement/page.tsx` | `handleSubmit` — Registrar movimiento de reactivo |
 
 ---
 
@@ -416,23 +446,53 @@ laboratorio-app/
     │   └── api/                  # API REST
     │       └── auth/
     │           ├── session/route.ts
-    │           └── logout/route.ts
+    │           ├── logout/route.ts
+    │           └── heartbeat/route.ts
     ├── lib/                      # Capa de datos
     │   ├── autenticacion.ts      # Autenticación JWT
     │   ├── bd.ts                 # Conexión Prisma (adapter-pg)
     │   ├── datos.ts              # Data Access Layer
     │   ├── formatear.ts          # Formateo de fechas (America/Ciudad_Juarez)
-    │   └── tipos.ts              # Tipos TypeScript
+    │   ├── tipos.ts              # Tipos TypeScript
+    │   ├── sesionesActivas.ts    # Gestión de sesiones activas (heartbeat)
+    │   ├── HeartbeatClient.tsx   # Cliente heartbeat periódico
+    │   └── ThemeProvider.tsx     # Alternador modo oscuro
     └── servicios/                # Capa de servicios
         ├── auditoria.ts          # Trazabilidad ISO 17025
         ├── experimentos.ts       # Gestión de experimentos
         ├── equipos.ts            # Gestión de equipos
+        ├── reactivos.ts          # Inventario de reactivos
         └── asistencia.ts         # Control de asistencia
 ```
 
 ---
 
 ## 10. Historial de Cambios
+
+### v0.5 — 26 de junio de 2026
+- [x] **Módulo de Inventario de Reactivos** — Modelos Reagent y ReagentMovement en Prisma
+- [x] Páginas: listado con indicador stock bajo/alto, detalle con historial de movimientos, formulario de nuevo reactivo, registro de entrada/salida
+- [x] Solo admin puede crear reactivos y registrar movimientos
+- [x] Validación de stock insuficiente en salidas (transacción atómica)
+- [x] Alerta de stock bajo en Dashboard del administrador
+- [x] Enlace "Reactivos" en sidebar y acceso rápido
+- [x] Trazabilidad ISO 17025: cada movimiento queda en AuditLog
+- [x] Variables `--color-teal-50`, `--color-teal-200` en modo oscuro
+
+### v0.4 — 25 de junio de 2026
+- [x] **Sistema de sesiones activas** — Modelo ActiveSession en Prisma
+- [x] Heartbeat automático cada 2 minutos desde el frontend
+- [x] Tarjeta "Sesiones activas" en Dashboard (solo admin)
+- [x] Sección lado a lado con "En laboratorio ahora"
+- [x] Limpieza automática de sesiones con heartbeat > 10 min
+- [x] Logout elimina la sesión activa
+- [x] **Modo oscuro** — ThemeProvider con toggle en sidebar y menú móvil
+- [x] Paleta zinc oscura completa con contraste mejorado
+- [x] `@custom-variant dark` para clases `dark:*` en Tailwind v4
+- [x] Inputs con `color-scheme: dark` en modo oscuro
+- [x] **PDF export** corregido en Railway (`serverExternalPackages: ["pdfkit"]`)
+- [x] Botón eliminar experimento (admin) con confirmación
+- [x] Botones Excel/PDF visibles solo para admin
 
 ### v0.3 — 23 de junio de 2026
 - [x] Despliegue en Railway con PostgreSQL (Neon)
@@ -462,30 +522,20 @@ laboratorio-app/
 
 ## 11. Pendientes
 
-### Prioridad alta
-
-- [ ] **Detección de sesiones activas** — Saber quién inició sesión pero no ha marcado asistencia. Implementación pendiente:
-  - Crear tabla `ActiveSession` (userId, loginAt, lastActiveAt) en Prisma
-  - Guardar sesión activa en `autenticarUsuario` al hacer login
-  - Eliminar sesión activa en `eliminarSesion` al hacer logout
-  - Endpoint de heartbeat que el frontend llama cada 30s para marcar actividad
-  - Vista en Dashboard del admin: "Usuarios conectados" vs "Usuarios con asistencia"
-  - El Dr. Torres podría ver quién está en el sistema sin haber registrado entrada
-
 ### Prioridad media
 
-- [ ] **Inventario de Reactivos** (Módulo 4) — El Dr. Torres ya envió el Excel. Control de stock con alertas de bajo inventario
 - [ ] **Notificaciones** — Avisar al Dr. cuando un estudiante completa un experimento
-- [ ] **Cálculos automáticos** — Ecuaciones para obtener parámetros cinéticos (marcados en azul en el Excel)
-- [ ] **Exportación a Excel/PDF** — Reportes descargables
-- [ ] **Gráficas** — Visualización de curvas de absorbancia vs tiempo
+- [ ] **Cálculos cinéticos automáticos** — Ecuaciones para obtener parámetros cinéticos (K, R², vida media) a partir de las absorbancias (marcados en azul en el Excel del Dr. Torres)
+- [ ] **Gráficas** — Visualización de curvas de absorbancia vs tiempo con Chart.js o similar
+- [ ] **Exportación Excel avanzada** — Reporte consolidado con cálculos cinéticos
 
 ### Prioridad baja
 
-- [ ] **Modo oscuro** — El CSS ya tiene variables preparadas
 - [ ] **Dominio personalizado** — Configurar un dominio propio en Railway
+- [ ] **Editar/eliminar reactivo** — Funcionalidad completa de CRUD en inventario
+- [ ] **Seed de reactivos** — Poblar base de datos con reactivos iniciales desde el Excel del Dr. Torres
 
 ---
 
-*Documentación generada el 23 de junio de 2026*
+*Documentación generada el 26 de junio de 2026*
 *Sistema desarrollado para el Laboratorio de Investigación UACJ — Dr. Torres*
