@@ -41,7 +41,7 @@ body {
   --color-zinc-100: #28282d;
   --color-zinc-200: #2d2d32;
   --color-zinc-300: #38383e;
-  --color-zinc-400: #6e6e78;
+  --color-zinc-400: #8e8e98;
   --color-zinc-500: #9e9ea8;
   --color-zinc-600: #b4b4be;
   --color-zinc-700: #d0d0d8;
@@ -101,5 +101,11 @@ body {
 .dark input::placeholder,
 .dark select::placeholder,
 .dark textarea::placeholder {
-  color: #6e6e78;
+  color: #8e8e98;
+}
+
+.dark input[type="datetime-local"],
+.dark input[type="date"],
+.dark input[type="time"] {
+  color-scheme: dark;
 }
