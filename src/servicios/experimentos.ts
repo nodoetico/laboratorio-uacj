@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/bd";
 import { registrarAuditoria } from "./auditoria";
 import { notificarAdmin } from "./notificaciones";
+import { notificarExperimentoCompletado } from "./email";
 
 export async function crearExperimento(
   usuarioId: number,
@@ -122,6 +123,8 @@ export async function finalizarExperimento(
     `${experimento.user.name} finalizó el experimento "${experimento.title}"`,
     `/dashboard/experiments/${experimentoId}`
   );
+
+  notificarExperimentoCompletado(experimento.user.name, experimento.title, experimentoId);
 
   return experimento;
 }
