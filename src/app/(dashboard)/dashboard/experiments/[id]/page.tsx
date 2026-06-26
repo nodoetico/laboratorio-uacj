@@ -6,6 +6,7 @@ import { prisma } from "@/lib/bd";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
+import { HelpButton } from "./HelpModal";
 
 export default async function ExperimentDetailPage(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
@@ -31,7 +32,8 @@ export default async function ExperimentDetailPage(props: { params: Promise<{ id
             {experiment.contaminant} · C₀ = {experiment.initialConcentration} · {experiment.user.name}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <HelpButton />
           {experiment.status === "in_progress" && (
             <form action={handleFinalizarExperimento}>
               <input type="hidden" name="id" value={experiment.id} />
@@ -53,6 +55,10 @@ export default async function ExperimentDetailPage(props: { params: Promise<{ id
         <div className="rounded-lg bg-zinc-50 p-3 border border-zinc-200"><span className="text-zinc-400">Masa</span><p className="font-medium">{experiment.materialMass} g</p></div>
         <div className="rounded-lg bg-zinc-50 p-3 border border-zinc-200"><span className="text-zinc-400">Volumen</span><p className="font-medium">{experiment.solutionVolume} mL</p></div>
         <div className="rounded-lg bg-zinc-50 p-3 border border-zinc-200"><span className="text-zinc-400">C₀</span><p className="font-medium">{experiment.initialConcentration}</p></div>
+      </div>
+
+      <div className="rounded-xl bg-blue-50 border border-blue-200 p-4 text-sm text-blue-800">
+        <p><strong>Cálculos cinéticos disponibles.</strong> Al agregar mediciones, cada réplica muestra automáticamente K, R², vida media y ln(A₀) obtenidos por regresión lineal. Presiona <strong>?</strong> para más detalles.</p>
       </div>
 
       {experiment.replicates.map((replicate) => {
