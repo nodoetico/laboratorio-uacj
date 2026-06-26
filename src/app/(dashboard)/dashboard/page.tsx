@@ -74,7 +74,7 @@ export default async function DashboardPage() {
             <section className="rounded-xl bg-white border border-zinc-200 p-5">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="font-semibold text-zinc-900">Sesiones activas</h2>
-                <span className="text-xs text-zinc-400">Heartbeat &lt; 5 min</span>
+                <span className="text-xs text-zinc-400">Con el sistema abierto</span>
               </div>
               {activeSessions.length === 0 ? (
                 <p className="text-sm text-zinc-400">Nadie conectado en este momento</p>
