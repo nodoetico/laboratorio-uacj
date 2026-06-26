@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/bd";
 import { registrarAuditoria } from "./auditoria";
+import { notificarAdmin } from "./notificaciones";
 
 export async function crearExperimento(
   usuarioId: number,
@@ -104,6 +105,7 @@ export async function finalizarExperimento(
   const experimento = await prisma.experiment.update({
     where: { id: experimentoId },
     data: { status: "completed", completedAt: new Date() },
+    include: { user: { select: { name: true } } },
   });
 
   await registrarAuditoria(
@@ -112,6 +114,13 @@ export async function finalizarExperimento(
     "Experimento",
     experimentoId,
     `Experimento "${experimento.title}" finalizado`
+  );
+
+  await notificarAdmin(
+    "experimento_completado",
+    `Experimento completado: ${experimento.title}`,
+    `${experimento.user.name} finalizó el experimento "${experimento.title}"`,
+    `/dashboard/experiments/${experimentoId}`
   );
 
   return experimento;

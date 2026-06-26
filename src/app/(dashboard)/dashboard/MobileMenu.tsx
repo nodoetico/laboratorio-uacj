@@ -3,8 +3,17 @@
 import { useState } from "react";
 import { SidebarNav } from "./SidebarClient";
 import { ThemeToggle } from "@/lib/ThemeProvider";
+import { NotificationBell } from "./NotificationBell";
 
-export function MobileMenu({ isAdmin }: { isAdmin: boolean }) {
+export function MobileMenu({
+  isAdmin,
+  noLeidas,
+  notificaciones,
+}: {
+  isAdmin: boolean;
+  noLeidas: number;
+  notificaciones: { id: number; type: string; title: string; message: string; link: string | null; read: boolean; createdAt: Date }[];
+}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -23,7 +32,7 @@ export function MobileMenu({ isAdmin }: { isAdmin: boolean }) {
           <span className="text-sm font-bold text-zinc-900">LabControl</span>
           <span className="text-xs text-zinc-500 ml-1">{isAdmin ? "Admin" : "Estudiante"}</span>
         </div>
-        <div className="w-10" />
+        <NotificationBell initialCount={noLeidas} initialNotifications={notificaciones} />
       </div>
 
       {open && (

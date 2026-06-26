@@ -28,6 +28,7 @@ model User {
   auditLogs      AuditLog[]
   activeSessions ActiveSession[]
   reagentMovements ReagentMovement[]
+  notifications    Notification[]
 }
 
 model Experiment {
@@ -151,4 +152,17 @@ model AuditLog {
   createdAt  DateTime @default(now())
 
   user User  @relation(fields: [userId], references: [id])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  type      String
+  title     String
+  message   String
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
 }
