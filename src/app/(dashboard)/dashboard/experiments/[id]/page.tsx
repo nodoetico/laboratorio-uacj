@@ -58,7 +58,7 @@ export default async function ExperimentDetailPage(props: { params: Promise<{ id
         <div className="rounded-lg bg-zinc-50 p-3 border border-zinc-200"><span className="text-zinc-400">C₀</span><p className="font-medium">{experiment.initialConcentration}</p></div>
       </div>
 
-      <div className="rounded-xl bg-blue-50 border border-blue-200 p-4 text-sm text-blue-800">
+      <div className="rounded-xl bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 p-4 text-sm text-blue-800 dark:text-blue-200">
         <p><strong>Cálculos cinéticos disponibles.</strong> Al agregar mediciones, cada réplica muestra automáticamente K, R², vida media y ln(A₀) obtenidos por regresión lineal. Presiona <strong>?</strong> para más detalles.</p>
       </div>
 
