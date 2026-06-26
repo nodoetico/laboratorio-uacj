@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -33,18 +35,18 @@ body {
 
 .dark {
   --background: #09090b;
-  --foreground: #fafafa;
+  --foreground: #f0f0f0;
 
-  --color-zinc-50: #09090b;
-  --color-zinc-100: #18181b;
-  --color-zinc-200: #27272a;
-  --color-zinc-300: #3f3f46;
-  --color-zinc-400: #52525b;
-  --color-zinc-500: #71717a;
-  --color-zinc-600: #a1a1aa;
-  --color-zinc-700: #d4d4d8;
-  --color-zinc-800: #27272a;
-  --color-zinc-900: #3f3f46;
+  --color-zinc-50: #141417;
+  --color-zinc-100: #28282d;
+  --color-zinc-200: #2d2d32;
+  --color-zinc-300: #38383e;
+  --color-zinc-400: #6e6e78;
+  --color-zinc-500: #9e9ea8;
+  --color-zinc-600: #b4b4be;
+  --color-zinc-700: #d0d0d8;
+  --color-zinc-800: #2d2d32;
+  --color-zinc-900: #3b3b44;
 
   --color-blue-50: #1e3a5f;
   --color-blue-600: #60a5fa;
@@ -81,9 +83,23 @@ body {
 }
 
 .dark .bg-white {
-  background-color: #18181b;
+  background-color: #1c1c1f;
 }
 
 .dark .text-zinc-900 {
-  color: #fafafa;
+  color: #f0f0f0;
+}
+
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: #141417;
+  color: #f0f0f0;
+  border-color: #38383e;
+}
+
+.dark input::placeholder,
+.dark select::placeholder,
+.dark textarea::placeholder {
+  color: #6e6e78;
 }
