@@ -7,6 +7,7 @@ import { redirect, notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { HelpButton } from "./HelpModal";
+import { Grafica } from "./Grafica";
 
 export default async function ExperimentDetailPage(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
@@ -60,6 +61,8 @@ export default async function ExperimentDetailPage(props: { params: Promise<{ id
       <div className="rounded-xl bg-blue-50 border border-blue-200 p-4 text-sm text-blue-800">
         <p><strong>Cálculos cinéticos disponibles.</strong> Al agregar mediciones, cada réplica muestra automáticamente K, R², vida media y ln(A₀) obtenidos por regresión lineal. Presiona <strong>?</strong> para más detalles.</p>
       </div>
+
+      <Grafica replicas={experiment.replicates} />
 
       {experiment.replicates.map((replicate) => {
         const calc = calcularCinetico(replicate.measurements);
