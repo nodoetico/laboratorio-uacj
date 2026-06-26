@@ -1,7 +1,8 @@
-import { verificarSesion } from "@/lib/autenticacion";
+import { verificarSesion, eliminarSesion } from "@/lib/autenticacion";
 import { redirect } from "next/navigation";
 import { SidebarNav } from "./SidebarClient";
 import { MobileMenu } from "./MobileMenu";
+import HeartbeatClient from "@/lib/HeartbeatClient";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await verificarSesion();
@@ -11,6 +12,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="flex min-h-screen bg-zinc-50">
+      <HeartbeatClient />
       <aside className="hidden md:flex w-64 bg-white border-r border-zinc-200 flex-col fixed md:static inset-y-0 left-0 z-40">
         <SidebarWidget isAdmin={isAdmin} />
       </aside>
@@ -46,7 +48,6 @@ function SidebarWidget({ isAdmin }: { isAdmin: boolean }) {
 
 async function logoutAction() {
   "use server";
-  const { cookies } = await import("next/headers");
-  (await cookies()).delete("session");
+  await eliminarSesion();
   redirect("/login");
 }

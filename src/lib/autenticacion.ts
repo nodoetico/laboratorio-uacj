@@ -2,6 +2,7 @@ import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { cache } from "react";
 import { prisma } from "./bd";
+import { registrarSesionActiva, eliminarSesionActiva } from "./sesionesActivas";
 import bcrypt from "bcryptjs";
 
 const JWT_SECRET = new TextEncoder().encode(
@@ -35,21 +36,27 @@ export async function descifrar(token: string): Promise<DatosSesion | null> {
 
 export async function crearSesion(userId: number, role: string) {
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-  const session = await cifrar({ userId, role, expiresAt });
+  const token = await cifrar({ userId, role, expiresAt });
   const cookieStore = await cookies();
 
-  cookieStore.set(COOKIE_SESION, session, {
+  cookieStore.set(COOKIE_SESION, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     expires: expiresAt,
     sameSite: "lax",
     path: "/",
   });
+
+  await registrarSesionActiva(userId, token);
 }
 
 export async function eliminarSesion() {
   const cookieStore = await cookies();
+  const token = cookieStore.get(COOKIE_SESION)?.value;
   cookieStore.delete(COOKIE_SESION);
+  if (token) {
+    await eliminarSesionActiva(token);
+  }
 }
 
 export const verificarSesion = cache(async () => {
