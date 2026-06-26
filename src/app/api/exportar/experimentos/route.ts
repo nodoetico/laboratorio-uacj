@@ -3,26 +3,28 @@ import { verificarSesion } from "@/lib/autenticacion";
 import { obtenerExperimentos } from "@/lib/datos";
 import { exportarExperimentosExcel, exportarExperimentosPDF } from "@/servicios/exportar";
 
+export const runtime = "nodejs";
+
 export async function GET(request: NextRequest) {
-  const session = await verificarSesion();
-  if (!session) {
-    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-  }
-  if (session.role !== "ADMIN") {
-    return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
-  }
-
-  const { searchParams } = new URL(request.url);
-  const formato = searchParams.get("formato") || "excel";
-
-  const experimentos = await obtenerExperimentos();
-  const completados = experimentos.filter((e) => e.status === "completed");
-
-  if (completados.length === 0) {
-    return NextResponse.json({ error: "No hay experimentos completados" }, { status: 404 });
-  }
-
   try {
+    const session = await verificarSesion();
+    if (!session) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+    if (session.role !== "ADMIN") {
+      return NextResponse.json({ error: "Solo administradores" }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const formato = searchParams.get("formato") || "excel";
+
+    const experimentos = await obtenerExperimentos();
+    const completados = experimentos.filter((e) => e.status === "completed");
+
+    if (completados.length === 0) {
+      return NextResponse.json({ error: "No hay experimentos completados" }, { status: 404 });
+    }
+
     if (formato === "pdf") {
       const buffer = await exportarExperimentosPDF(completados);
       return new NextResponse(new Uint8Array(buffer), {
@@ -43,7 +45,9 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error al exportar:", error);
-    const mensaje = error instanceof Error ? error.message : "Error desconocido";
+    const mensaje = error instanceof Error
+      ? `${error.message}\n${error.stack}`
+      : "Error desconocido";
     return NextResponse.json({ error: mensaje }, { status: 500 });
   }
 }
