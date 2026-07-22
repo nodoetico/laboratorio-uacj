@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "rm -rf .next .turbo && DATABASE_URL=${DATABASE_URL:-postgresql://d:d@localhost:5432/d} next build",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "seed": "tsx prisma/seed.ts",
