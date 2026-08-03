@@ -1,7 +1,13 @@
 import ExcelJS from "exceljs";
 import PDFDocument from "pdfkit";
-import type { ExperimentoDTO, AsistenciaDTO, UsoEquipoDTO } from "@/lib/tipos";
-import { formatearFechaCorta, formatearFechaHora } from "@/lib/formatear";
+import type { ExperimentoDTO, AsistenciaDTO, UsoEquipoDTO, ReactivoDTO } from "@/lib/tipos";
+import type { ReporteAsistenciaMensual } from "@/servicios/asistencia";
+import { formatearFechaCorta, formatearFechaHora, formatearHora } from "@/lib/formatear";
+
+const MESES = [
+  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+];
 
 function pdfToBuffer(doc: PDFKit.PDFDocument): Promise<Buffer> {
   return new Promise((resolve, reject) => {
@@ -181,6 +187,7 @@ export async function exportarAsistenciaExcel(asistencia: AsistenciaDTO[]): Prom
 
   sheet.columns = [
     { header: "Usuario", key: "user", width: 25 },
+    { header: "Matrícula", key: "studentId", width: 14 },
     { header: "Entrada", key: "checkIn", width: 22 },
     { header: "Salida", key: "checkOut", width: 22 },
     { header: "Duración (h)", key: "duration", width: 14 },
@@ -191,6 +198,7 @@ export async function exportarAsistenciaExcel(asistencia: AsistenciaDTO[]): Prom
   for (const r of asistencia) {
     sheet.addRow({
       user: r.userName,
+      studentId: r.userStudentId || "",
       checkIn: formatearFechaHora(r.checkIn),
       checkOut: r.checkOut ? formatearFechaHora(r.checkOut) : "En laboratorio",
       duration: r.duration !== null ? Number(r.duration.toFixed(2)) : "",
@@ -208,13 +216,197 @@ export async function exportarAsistenciaPDF(asistencia: AsistenciaDTO[]): Promis
   doc.fontSize(8).font("Helvetica").text(`Generado: ${formatearFechaHora(new Date())}`, { align: "center" });
   doc.moveDown(1);
 
-  const headers = ["Usuario", "Entrada", "Salida", "Duración (h)", "Tipo"];
+  const headers = ["Usuario", "Matrícula", "Entrada", "Salida", "Duración (h)", "Tipo"];
   const rows = asistencia.map((r) => [
     r.userName,
+    r.userStudentId || "",
     formatearFechaHora(r.checkIn),
     r.checkOut ? formatearFechaHora(r.checkOut) : "En laboratorio",
     r.duration !== null ? `${r.duration.toFixed(2)}` : "",
     TIPO_MAPA[r.type] || r.type,
+  ]);
+
+  drawPdfTable(doc, headers, rows, doc.y);
+
+  return pdfToBuffer(doc);
+}
+
+// === ASISTENCIA MENSUAL ===
+
+export async function exportarAsistenciaMensualExcel(
+  reporte: ReporteAsistenciaMensual
+): Promise<Buffer> {
+  const workbook = new ExcelJS.Workbook();
+  const titulo = `Formato de Asistencia Mensual - ${MESES[reporte.mes - 1]} ${reporte.anio}`;
+
+  for (const usuario of reporte.usuarios) {
+    const sheet = workbook.addWorksheet(
+      usuario.name.length > 28 ? usuario.name.substring(0, 28) : usuario.name
+    );
+
+    sheet.columns = [
+      { header: "Día", key: "dia", width: 8 },
+      { header: "Entrada", key: "entrada", width: 14 },
+      { header: "Salida", key: "salida", width: 14 },
+      { header: "Horas", key: "horas", width: 10 },
+      { header: "Firma", key: "firma", width: 20 },
+    ];
+    sheet.getRow(1).font = { bold: true };
+
+    const registrosPorDia = new Map<number, (typeof usuario.registros)[number]>();
+    for (const r of usuario.registros) {
+      registrosPorDia.set(r.dia, r);
+    }
+
+    for (let dia = 1; dia <= reporte.diasDelMes; dia++) {
+      const r = registrosPorDia.get(dia);
+      sheet.addRow({
+        dia,
+        entrada: r ? formatearHora(r.entrada) : "",
+        salida: r ? formatearHora(r.salida) : "",
+        horas: r ? Number(r.horas.toFixed(2)) : "",
+        firma: "",
+      });
+    }
+
+    const totalHoras = usuario.registros.reduce((acc, r) => acc + r.horas, 0);
+    sheet.addRow({
+      dia: "TOTAL",
+      entrada: "",
+      salida: "",
+      horas: Number(totalHoras.toFixed(2)),
+      firma: "",
+    });
+    sheet.getRow(sheet.rowCount).font = { bold: true };
+  }
+
+  const resumen = workbook.addWorksheet("Resumen");
+  resumen.columns = [
+    { header: "Estudiante", key: "name", width: 30 },
+    { header: "Matrícula", key: "studentId", width: 14 },
+    { header: "Días asistidos", key: "dias", width: 14 },
+    { header: "Total horas", key: "horas", width: 12 },
+  ];
+  resumen.getRow(1).font = { bold: true };
+  for (const usuario of reporte.usuarios) {
+    const diasAsistidos = new Set(usuario.registros.map((r) => r.dia)).size;
+    const totalHoras = usuario.registros.reduce((acc, r) => acc + r.horas, 0);
+    resumen.addRow({
+      name: usuario.name,
+      studentId: usuario.studentId ?? "",
+      dias: diasAsistidos,
+      horas: Number(totalHoras.toFixed(2)),
+    });
+  }
+  resumen.workbook.title = titulo;
+
+  return Buffer.from(await workbook.xlsx.writeBuffer());
+}
+
+export async function exportarAsistenciaMensualPDF(
+  reporte: ReporteAsistenciaMensual
+): Promise<Buffer> {
+  const doc = new PDFDocument({ margin: 30, size: "A4", layout: "landscape" });
+
+  doc.fontSize(16).font("Helvetica-Bold").text(
+    `Formato de Asistencia Mensual — ${MESES[reporte.mes - 1]} ${reporte.anio}`,
+    { align: "center" }
+  );
+  doc.fontSize(8).font("Helvetica").text(
+    `Generado: ${formatearFechaHora(new Date())}`,
+    { align: "center" }
+  );
+  doc.moveDown(1);
+
+  for (const usuario of reporte.usuarios) {
+    if (doc.y > doc.page.height - 120) {
+      doc.addPage();
+    }
+
+    doc.fontSize(10).font("Helvetica-Bold").text(
+      `${usuario.name}${usuario.studentId ? ` — Matrícula: ${usuario.studentId}` : ""}`
+    );
+    doc.moveDown(0.2);
+
+    const headers = ["Día", "Entrada", "Salida", "Horas", "Firma"];
+    const registrosPorDia = new Map<number, (typeof usuario.registros)[number]>();
+    for (const r of usuario.registros) {
+      registrosPorDia.set(r.dia, r);
+    }
+
+    const rows = Array.from({ length: reporte.diasDelMes }, (_, i) => i + 1).map((dia) => {
+      const r = registrosPorDia.get(dia);
+      return [
+        String(dia),
+        r ? formatearHora(r.entrada) : "",
+        r ? formatearHora(r.salida) : "",
+        r ? `${r.horas.toFixed(2)}` : "",
+        "",
+      ];
+    });
+
+    const totalHoras = usuario.registros.reduce((acc, r) => acc + r.horas, 0);
+    rows.push(["TOTAL", "", "", `${totalHoras.toFixed(2)}`, ""]);
+
+    doc.y = drawPdfTable(doc, headers, rows, doc.y) + 8;
+  }
+
+  return pdfToBuffer(doc);
+}
+
+// === REACTIVOS ===
+
+export async function exportarReactivosExcel(reactivos: ReactivoDTO[]): Promise<Buffer> {
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet("Inventario de Reactivos");
+
+  sheet.columns = [
+    { header: "Nombre", key: "name", width: 35 },
+    { header: "Descripción", key: "description", width: 40 },
+    { header: "Cantidad", key: "quantity", width: 12 },
+    { header: "Envases", key: "containers", width: 10 },
+    { header: "Unidad", key: "unit", width: 10 },
+    { header: "Stock mínimo", key: "minStock", width: 14 },
+    { header: "Ubicación", key: "location", width: 18 },
+    { header: "Vence", key: "expiresAt", width: 14 },
+    { header: "Estado", key: "status", width: 14 },
+  ];
+  sheet.getRow(1).font = { bold: true };
+
+  for (const r of reactivos) {
+    sheet.addRow({
+      name: r.name,
+      description: r.description ?? "",
+      quantity: r.quantity,
+      containers: r.containers,
+      unit: r.unit,
+      minStock: r.minStock,
+      location: r.location ?? "",
+      expiresAt: r.expiresAt ? formatearFechaCorta(r.expiresAt) : "",
+      status: r.stockBajo ? "Stock bajo" : "OK",
+    });
+  }
+
+  return Buffer.from(await workbook.xlsx.writeBuffer());
+}
+
+export async function exportarReactivosPDF(reactivos: ReactivoDTO[]): Promise<Buffer> {
+  const doc = new PDFDocument({ margin: 30, size: "LETTER" });
+
+  doc.fontSize(16).font("Helvetica-Bold").text("Inventario de Reactivos", { align: "center" });
+  doc.fontSize(8).font("Helvetica").text(`Generado: ${formatearFechaHora(new Date())}`, { align: "center" });
+  doc.moveDown(1);
+
+  const headers = ["Nombre", "Cantidad", "Envases", "Unidad", "Stock mín.", "Ubicación", "Vence", "Estado"];
+  const rows = reactivos.map((r) => [
+    r.name.length > 30 ? `${r.name.substring(0, 30)}...` : r.name,
+    String(r.quantity),
+    String(r.containers),
+    r.unit,
+    String(r.minStock),
+    r.location || "",
+    r.expiresAt ? formatearFechaCorta(r.expiresAt) : "",
+    r.stockBajo ? "Stock bajo" : "OK",
   ]);
 
   drawPdfTable(doc, headers, rows, doc.y);
@@ -231,6 +423,8 @@ export async function exportarEquiposExcel(uso: UsoEquipoDTO[]): Promise<Buffer>
   sheet.columns = [
     { header: "Equipo", key: "equipment", width: 25 },
     { header: "Usuario", key: "user", width: 25 },
+    { header: "Matrícula", key: "studentId", width: 14 },
+    { header: "Sustancia", key: "substance", width: 25 },
     { header: "Inicio", key: "start", width: 22 },
     { header: "Fin", key: "end", width: 22 },
     { header: "Descripción", key: "description", width: 40 },
@@ -241,6 +435,8 @@ export async function exportarEquiposExcel(uso: UsoEquipoDTO[]): Promise<Buffer>
     sheet.addRow({
       equipment: u.equipmentName,
       user: u.userName,
+      studentId: u.userStudentId || "",
+      substance: u.substance || "",
       start: formatearFechaHora(u.startAt),
       end: u.endAt ? formatearFechaHora(u.endAt) : "",
       description: u.description,
@@ -257,10 +453,12 @@ export async function exportarEquiposPDF(uso: UsoEquipoDTO[]): Promise<Buffer> {
   doc.fontSize(8).font("Helvetica").text(`Generado: ${formatearFechaHora(new Date())}`, { align: "center" });
   doc.moveDown(1);
 
-  const headers = ["Equipo", "Usuario", "Inicio", "Fin", "Descripción"];
+  const headers = ["Equipo", "Usuario", "Matrícula", "Sustancia", "Inicio", "Fin", "Descripción"];
   const rows = uso.map((u) => [
     u.equipmentName,
     u.userName,
+    u.userStudentId || "",
+    u.substance || "",
     formatearFechaHora(u.startAt),
     u.endAt ? formatearFechaHora(u.endAt) : "",
     u.description.length > 45 ? `${u.description.substring(0, 45)}...` : u.description,

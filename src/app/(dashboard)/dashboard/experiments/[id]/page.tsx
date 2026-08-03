@@ -1,13 +1,15 @@
 import { verificarSesion } from "@/lib/autenticacion";
 import { obtenerExperimento } from "@/lib/datos";
-import { agregarMedicion, finalizarExperimento } from "@/servicios/experimentos";
+import { agregarMedicion, actualizarMedicion, finalizarExperimento } from "@/servicios/experimentos";
 import { calcularCinetico } from "@/servicios/cineticos";
+import { calcularAvanzado } from "@/servicios/cineticos-avanzados";
 import { prisma } from "@/lib/bd";
 import { redirect, notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { HelpButton } from "./HelpModal";
 import { Grafica } from "./Grafica";
+import { EditarMedicion } from "./EditarMedicion";
 
 export default async function ExperimentDetailPage(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
@@ -23,14 +25,23 @@ export default async function ExperimentDetailPage(props: { params: Promise<{ id
   const isOwner = experiment.user.id === session.userId || session.role === "ADMIN";
   if (!isOwner) return <p className="text-zinc-400">No tienes acceso a este experimento</p>;
 
+  const V = experiment.solutionVolume / 1000;
+  const m = experiment.materialMass;
+  const calcAvanzado = calcularAvanzado(
+    experiment.replicates,
+    experiment.initialConcentration,
+    V,
+    m
+  );
+
   return (
-    <div className="max-w-4xl mx-auto space-y-5">
+    <div className="max-w-5xl mx-auto space-y-5">
       <div className="flex items-center justify-between">
         <div>
           <Link href="/dashboard/experiments" className="text-sm text-blue-600 hover:underline mb-1 inline-block">← Volver</Link>
           <h1 className="text-2xl font-bold text-zinc-900">{experiment.title}</h1>
           <p className="text-sm text-zinc-500">
-            {experiment.contaminant} · C₀ = {experiment.initialConcentration} · {experiment.user.name}
+            {experiment.contaminant} · C₀ = {experiment.initialConcentration} mg/L · {experiment.user.name}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -52,14 +63,41 @@ export default async function ExperimentDetailPage(props: { params: Promise<{ id
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-        <div className="rounded-lg bg-zinc-50 p-3 border border-zinc-200"><span className="text-zinc-400">Masa</span><p className="font-medium">{experiment.materialMass} g</p></div>
-        <div className="rounded-lg bg-zinc-50 p-3 border border-zinc-200"><span className="text-zinc-400">Volumen</span><p className="font-medium">{experiment.solutionVolume} mL</p></div>
-        <div className="rounded-lg bg-zinc-50 p-3 border border-zinc-200"><span className="text-zinc-400">C₀</span><p className="font-medium">{experiment.initialConcentration}</p></div>
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-sm">
+        <div className="rounded-lg bg-zinc-50 p-3 border border-zinc-200">
+          <span className="text-zinc-400 text-xs">Masa</span>
+          <p className="font-medium">{experiment.materialMass} g</p>
+        </div>
+        <div className="rounded-lg bg-zinc-50 p-3 border border-zinc-200">
+          <span className="text-zinc-400 text-xs">Volumen</span>
+          <p className="font-medium">{experiment.solutionVolume} mL</p>
+        </div>
+        <div className="rounded-lg bg-zinc-50 p-3 border border-zinc-200">
+          <span className="text-zinc-400 text-xs">C₀</span>
+          <p className="font-medium">{experiment.initialConcentration} mg/L</p>
+        </div>
+        {experiment.agitation !== null && (
+          <div className="rounded-lg bg-zinc-50 p-3 border border-zinc-200">
+            <span className="text-zinc-400 text-xs">Agitación</span>
+            <p className="font-medium">{experiment.agitation} rpm</p>
+          </div>
+        )}
+        {experiment.temperature !== null && (
+          <div className="rounded-lg bg-zinc-50 p-3 border border-zinc-200">
+            <span className="text-zinc-400 text-xs">Temperatura</span>
+            <p className="font-medium">{experiment.temperature} °C</p>
+          </div>
+        )}
+        {experiment.ph !== null && (
+          <div className="rounded-lg bg-zinc-50 p-3 border border-zinc-200">
+            <span className="text-zinc-400 text-xs">pH</span>
+            <p className="font-medium">{experiment.ph}</p>
+          </div>
+        )}
       </div>
 
-      <div className="rounded-xl bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-700 p-4 text-sm text-blue-800 dark:text-blue-100">
-        <p><strong>Cálculos cinéticos disponibles.</strong> Al agregar mediciones, cada réplica muestra automáticamente K, R², vida media y ln(A₀) obtenidos por regresión lineal. Presiona <strong>?</strong> para más detalles.</p>
+      <div className="rounded-xl bg-blue-50 border border-blue-200 p-4 text-sm text-blue-800">
+        <p><strong>Cálculos cinéticos disponibles.</strong> Las tablas muestran resultados de primer orden (por réplica) y segundo orden (promediado). Presiona <strong>?</strong> para más detalles.</p>
       </div>
 
       <Grafica replicas={experiment.replicates} />
@@ -70,57 +108,66 @@ export default async function ExperimentDetailPage(props: { params: Promise<{ id
         <div key={replicate.id} className="rounded-xl bg-white border border-zinc-200 p-5">
           <h3 className="font-semibold text-zinc-900 mb-3">Réplica {replicate.replicateNum}</h3>
 
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-zinc-200">
-                <th className="text-left py-2 text-zinc-500 font-medium">Tiempo (h)</th>
-                <th className="text-left py-2 text-zinc-500 font-medium">Absorbancia</th>
-                <th className="text-right py-2 text-zinc-500 font-medium">Acción</th>
-              </tr>
-            </thead>
-            <tbody>
-              {replicate.measurements.map((m) => (
-                <tr key={m.id} className="border-b border-zinc-50">
-                  <td className="py-2 text-zinc-900">{m.timeHours}</td>
-                  <td className="py-2 text-zinc-900">{m.absorbance}</td>
-                  <td className="py-2 text-right">
-                    <form action={handleEliminarMedicion}>
-                      <input type="hidden" name="medicionId" value={m.id} />
-                      <input type="hidden" name="experimentoId" value={experiment.id} />
-                      <button type="submit" className="text-xs text-red-500 hover:underline">Eliminar</button>
-                    </form>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-zinc-200">
+                  <th className="text-left py-2 text-zinc-500 font-medium whitespace-nowrap">Tiempo (h)</th>
+                  <th className="text-left py-2 text-zinc-500 font-medium whitespace-nowrap">Absorbancia</th>
+                  <th className="text-right py-2 text-zinc-500 font-medium">Acción</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {replicate.measurements.map((m) => (
+                  <tr key={m.id} className="border-b border-zinc-50">
+                    <td className="py-2 text-zinc-900">{m.timeHours}</td>
+                    <td className="py-2 text-zinc-900">{m.absorbance}</td>
+                    <td className="py-2 text-right whitespace-nowrap">
+                      <EditarMedicion
+                        medicionId={m.id}
+                        experimentoId={experiment.id}
+                        tiempo={m.timeHours}
+                        absorbancia={m.absorbance}
+                        accion={handleEditarMedicion}
+                      />
+                      <form action={handleEliminarMedicion} className="inline">
+                        <input type="hidden" name="medicionId" value={m.id} />
+                        <input type="hidden" name="experimentoId" value={experiment.id} />
+                        <button type="submit" className="text-xs text-red-500 hover:underline">Eliminar</button>
+                      </form>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
           {calc.K !== null ? (
             <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-700 p-2.5 text-center">
-                <span className="text-xs text-blue-500 dark:text-blue-300 font-medium">K (h⁻¹)</span>
-                <p className="text-sm font-bold text-blue-700 dark:text-blue-100">{calc.K}</p>
+              <div className="rounded-lg bg-blue-50 border border-blue-200 p-2.5 text-center">
+                <span className="text-xs text-blue-500 font-medium">K (h⁻¹)</span>
+                <p className="text-sm font-bold text-blue-700">{calc.K}</p>
               </div>
-              <div className="rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-700 p-2.5 text-center">
-                <span className="text-xs text-blue-500 dark:text-blue-300 font-medium">R²</span>
-                <p className="text-sm font-bold text-blue-700 dark:text-blue-100">{calc.R2}</p>
+              <div className="rounded-lg bg-blue-50 border border-blue-200 p-2.5 text-center">
+                <span className="text-xs text-blue-500 font-medium">R²</span>
+                <p className="text-sm font-bold text-blue-700">{calc.R2}</p>
               </div>
-              <div className="rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-700 p-2.5 text-center">
-                <span className="text-xs text-blue-500 dark:text-blue-300 font-medium">Vida media (h)</span>
-                <p className="text-sm font-bold text-blue-700 dark:text-blue-100">{calc.vidaMedia}</p>
+              <div className="rounded-lg bg-blue-50 border border-blue-200 p-2.5 text-center">
+                <span className="text-xs text-blue-500 font-medium">Vida media (h)</span>
+                <p className="text-sm font-bold text-blue-700">{calc.vidaMedia}</p>
               </div>
-              <div className="rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-700 p-2.5 text-center">
-                <span className="text-xs text-blue-500 dark:text-blue-300 font-medium">ln(A₀)</span>
-                <p className="text-sm font-bold text-blue-700 dark:text-blue-100">{calc.lnA0}</p>
+              <div className="rounded-lg bg-blue-50 border border-blue-200 p-2.5 text-center">
+                <span className="text-xs text-blue-500 font-medium">ln(A₀)</span>
+                <p className="text-sm font-bold text-blue-700">{calc.lnA0}</p>
               </div>
             </div>
           ) : calc.puntosValidos >= 1 ? (
-            <div className="mt-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 p-2.5 text-center">
-              <span className="text-xs text-yellow-600 dark:text-yellow-200">{calc.mensaje} ({calc.puntosValidos} válida{calc.puntosValidos !== 1 ? "s" : ""})</span>
+            <div className="mt-3 rounded-lg bg-yellow-50 border border-yellow-200 p-2.5 text-center">
+              <span className="text-xs text-yellow-600">{calc.mensaje} ({calc.puntosValidos} válida{calc.puntosValidos !== 1 ? "s" : ""})</span>
             </div>
           ) : (
-            <div className="mt-3 rounded-lg bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 p-2.5 text-center">
-              <span className="text-xs text-zinc-400 dark:text-zinc-500">Agrega mediciones para ver cálculos cinéticos</span>
+            <div className="mt-3 rounded-lg bg-zinc-50 border border-zinc-200 p-2.5 text-center">
+              <span className="text-xs text-zinc-400">Agrega mediciones para ver cálculos cinéticos</span>
             </div>
           )}
 
@@ -145,6 +192,81 @@ export default async function ExperimentDetailPage(props: { params: Promise<{ id
         </div>
         );
       })}
+
+      {calcAvanzado.puntos.length > 0 && (
+        <div className="rounded-xl bg-white border border-zinc-200 p-5">
+          <h3 className="font-semibold text-zinc-900 mb-1">Cálculos promediados (cinética de segundo orden)</h3>
+          <p className="text-xs text-zinc-400 mb-3">
+            Promedio de absorbancia por tiempo · Ce = (Abs/Abs₀) × C₀ · qe = (C₀ − Ce) × V / m · A = t/qe
+          </p>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-zinc-200">
+                  <th className="text-left py-2 text-zinc-500 font-medium whitespace-nowrap">t (h)</th>
+                  <th className="text-left py-2 text-zinc-500 font-medium whitespace-nowrap">Abs A</th>
+                  <th className="text-left py-2 text-zinc-500 font-medium whitespace-nowrap">Abs B</th>
+                  <th className="text-left py-2 text-zinc-500 font-medium whitespace-nowrap">Abs C</th>
+                  <th className="text-left py-2 text-zinc-500 font-medium whitespace-nowrap">Promedio</th>
+                  <th className="text-left py-2 text-zinc-500 font-medium whitespace-nowrap">Ce (mg/L)</th>
+                  <th className="text-left py-2 text-zinc-500 font-medium whitespace-nowrap">qe (mg/g)</th>
+                  <th className="text-left py-2 text-zinc-500 font-medium whitespace-nowrap">A = t/qe</th>
+                </tr>
+              </thead>
+              <tbody>
+                {calcAvanzado.puntos.map((p, i) => (
+                  <tr key={i} className="border-b border-zinc-50">
+                    <td className="py-2 text-zinc-900 font-mono">{p.timeHours}</td>
+                    {[0, 1, 2].map((idx) => (
+                      <td key={idx} className="py-2 text-zinc-600 font-mono">
+                        {p.absorbancias[idx]?.toFixed(4) ?? "—"}
+                      </td>
+                    ))}
+                    <td className="py-2 text-zinc-900 font-mono font-semibold">
+                      {p.promedio?.toFixed(4) ?? "—"}
+                    </td>
+                    <td className="py-2 text-zinc-900 font-mono">
+                      {p.ce?.toFixed(4) ?? "—"}
+                    </td>
+                    <td className="py-2 text-zinc-900 font-mono">
+                      {p.qe?.toFixed(4) ?? "—"}
+                    </td>
+                    <td className="py-2 text-zinc-900 font-mono">
+                      {p.tDivQe?.toFixed(4) ?? "—"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-4 flex gap-4">
+            <div className="rounded-lg bg-purple-50 border border-purple-200 p-3 text-center flex-1">
+              <span className="text-xs text-purple-500 font-medium">K₂ (g·mg⁻¹·h⁻¹)</span>
+              <p className="text-lg font-bold text-purple-700">{calcAvanzado.k2 ?? "—"}</p>
+            </div>
+            <div className="rounded-lg bg-purple-50 border border-purple-200 p-3 text-center flex-1">
+              <span className="text-xs text-purple-500 font-medium">R² (segundo orden)</span>
+              <p className="text-lg font-bold text-purple-700">{calcAvanzado.r2 ?? "—"}</p>
+            </div>
+            <div className="rounded-lg bg-purple-50 border border-purple-200 p-3 text-center flex-1">
+              <span className="text-xs text-purple-500 font-medium">Volumen</span>
+              <p className="text-lg font-bold text-purple-700">{V} L</p>
+            </div>
+            <div className="rounded-lg bg-purple-50 border border-purple-200 p-3 text-center flex-1">
+              <span className="text-xs text-purple-500 font-medium">Masa</span>
+              <p className="text-lg font-bold text-purple-700">{m} g</p>
+            </div>
+          </div>
+
+          {calcAvanzado.mensaje && (
+            <div className="mt-3 rounded-lg bg-yellow-50 border border-yellow-200 p-2.5 text-center">
+              <span className="text-xs text-yellow-600">{calcAvanzado.mensaje}</span>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -160,6 +282,24 @@ async function handleAgregarMedicion(formData: FormData) {
   await agregarMedicion(
     session.userId,
     replicaId,
+    parseFloat(formData.get("tiempoHoras") as string),
+    parseFloat(formData.get("absorbancia") as string)
+  );
+
+  revalidatePath(`/dashboard/experiments/${experimentoId}`);
+}
+
+async function handleEditarMedicion(formData: FormData) {
+  "use server";
+  const session = await verificarSesion();
+  if (!session) throw new Error("No autorizado");
+
+  const medicionId = parseInt(formData.get("medicionId") as string);
+  const experimentoId = formData.get("experimentoId") as string;
+
+  await actualizarMedicion(
+    session.userId,
+    medicionId,
     parseFloat(formData.get("tiempoHoras") as string),
     parseFloat(formData.get("absorbancia") as string)
   );

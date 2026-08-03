@@ -1,7 +1,7 @@
 import { autenticarUsuario, verificarSesion } from "@/lib/autenticacion";
 import { redirect } from "next/navigation";
 
-export default async function LoginPage(props: { searchParams?: Promise<{ error?: string }> }) {
+export default async function LoginPage(props: { searchParams?: Promise<{ error?: string; reset?: string }> }) {
   const session = await verificarSesion();
   if (session) redirect("/dashboard");
 
@@ -18,6 +18,11 @@ export default async function LoginPage(props: { searchParams?: Promise<{ error?
         {error === "invalid" && (
           <div className="mb-4 rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
             Credenciales inválidas. Verifica tu correo y contraseña.
+          </div>
+        )}
+        {searchParams?.reset === "1" && (
+          <div className="mb-4 rounded-lg bg-green-50 border border-green-200 p-3 text-sm text-green-700">
+            Contraseña actualizada. Inicia sesión con tu nueva contraseña.
           </div>
         )}
         <form action={handleLogin} className="space-y-4">
@@ -54,7 +59,15 @@ export default async function LoginPage(props: { searchParams?: Promise<{ error?
             Iniciar sesión
           </button>
         </form>
-        <p className="mt-4 text-xs text-center text-zinc-400">
+        <p className="mt-4 flex items-center justify-between text-xs text-zinc-400">
+          <a href="/register" className="text-blue-600 hover:underline">
+            Crear cuenta
+          </a>
+          <a href="/recuperar" className="text-blue-600 hover:underline">
+            ¿Olvidaste tu contraseña?
+          </a>
+        </p>
+        <p className="mt-2 text-xs text-center text-zinc-400">
           Demo: doctor@uacj.mx / admin123
         </p>
       </div>

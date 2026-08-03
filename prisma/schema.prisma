@@ -18,6 +18,7 @@ model User {
   email     String    @unique
   name      String
   password  String
+  studentId String?  @unique
   role      Role      @default(STUDENT)
   active    Boolean   @default(true)
   createdAt DateTime  @default(now())
@@ -29,6 +30,7 @@ model User {
   activeSessions ActiveSession[]
   reagentMovements ReagentMovement[]
   notifications    Notification[]
+  passwordResetTokens PasswordResetToken[]
 }
 
 model Experiment {
@@ -39,6 +41,9 @@ model Experiment {
   materialMass    Float
   solutionVolume  Float
   initialConcentration Float
+  agitation       Float?
+  temperature     Float?
+  ph              Float?
   status          String   @default("in_progress")
   createdAt       DateTime @default(now())
   completedAt     DateTime?
@@ -86,6 +91,7 @@ model EquipmentUsage {
   startAt     DateTime
   endAt       DateTime?
   description String
+  substance   String?
   createdAt   DateTime @default(now())
 
   equipment Equipment @relation(fields: [equipmentId], references: [id])
@@ -118,6 +124,7 @@ model Reagent {
   name        String   @unique
   description String?
   quantity    Float    @default(0)
+  containers  Int      @default(1)
   unit        String   @default("g")
   minStock    Float    @default(0)
   location    String?
@@ -165,4 +172,15 @@ model Notification {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
+}
+
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

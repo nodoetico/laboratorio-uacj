@@ -4,7 +4,8 @@ export function formatearFechaHora(fecha: Date): string {
   return fecha.toLocaleString("es-MX", { timeZone: ZONA });
 }
 
-export function formatearHora(fecha: Date): string {
+export function formatearHora(fecha: Date | null): string {
+  if (!fecha) return "—";
   return fecha.toLocaleTimeString("es-MX", { timeZone: ZONA, hour: "2-digit", minute: "2-digit" });
 }
 

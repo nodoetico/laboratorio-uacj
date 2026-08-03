@@ -1,16 +1,33 @@
 import { verificarSesion } from "@/lib/autenticacion";
-import { obtenerAsistencia } from "@/lib/datos";
+import { obtenerAsistencia, obtenerAsistenciaPaginada } from "@/lib/datos";
 import { registrarEntrada, registrarSalida } from "@/servicios/asistencia";
 import { formatearFechaHora, esMismoDia } from "@/lib/formatear";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { Paginacion } from "@/components/Paginacion";
 
-export default async function AttendancePage() {
+export default async function AttendancePage(props: {
+  searchParams: Promise<{ desde?: string; hasta?: string; pagina?: string }>;
+}) {
   const session = await verificarSesion();
   if (!session) redirect("/login");
 
+  const searchParams = await props.searchParams;
+  const desde = searchParams.desde ? new Date(`${searchParams.desde}T00:00:00`) : undefined;
+  const hasta = searchParams.hasta ? new Date(`${searchParams.hasta}T23:59:59`) : undefined;
+  const pagina = parseInt(searchParams.pagina ?? "1");
+  const paginaValida = isNaN(pagina) ? 1 : pagina;
+
   const isAdmin = session.role === "ADMIN";
-  const records = await obtenerAsistencia(isAdmin ? undefined : session.userId);
+  const userIdFiltro = isAdmin ? undefined : session.userId;
+  const records = await obtenerAsistencia(userIdFiltro);
+  const { registros, paginas } = await obtenerAsistenciaPaginada({
+    userId: userIdFiltro,
+    from: desde && !isNaN(desde.getTime()) ? desde : undefined,
+    to: hasta && !isNaN(hasta.getTime()) ? hasta : undefined,
+    pagina: paginaValida,
+    porPagina: 15,
+  });
   const hasOpenSession = records.some((r) => !r.checkOut && r.userId === session.userId);
 
   return (
@@ -21,6 +38,14 @@ export default async function AttendancePage() {
           <p className="text-sm text-zinc-500">Registro de entrada y salida del laboratorio</p>
         </div>
         <div className="flex items-center gap-2">
+          {isAdmin && (
+            <a
+              href="/dashboard/attendance/reporte"
+              className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
+            >
+              Reporte mensual
+            </a>
+          )}
           {records.length > 0 && (
             <div className="flex items-center gap-1">
               <a
@@ -75,10 +100,45 @@ export default async function AttendancePage() {
       )}
 
       <div className="rounded-xl bg-white border border-zinc-200 overflow-x-auto">
+        <form method="get" className="p-4 border-b border-zinc-200 flex flex-wrap items-end gap-3">
+          <div>
+            <label className="block text-xs text-zinc-400 mb-1">Desde</label>
+            <input
+              name="desde"
+              type="date"
+              defaultValue={searchParams.desde ?? ""}
+              className="rounded-lg border border-zinc-300 px-2 py-1.5 text-sm text-zinc-900"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-zinc-400 mb-1">Hasta</label>
+            <input
+              name="hasta"
+              type="date"
+              defaultValue={searchParams.hasta ?? ""}
+              className="rounded-lg border border-zinc-300 px-2 py-1.5 text-sm text-zinc-900"
+            />
+          </div>
+          <button
+            type="submit"
+            className="rounded-lg bg-zinc-800 px-3 py-1.5 text-sm text-white hover:bg-zinc-900 transition-colors"
+          >
+            Filtrar
+          </button>
+          {(searchParams.desde || searchParams.hasta) && (
+            <a
+              href="/dashboard/attendance"
+              className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-50 transition-colors"
+            >
+              Limpiar
+            </a>
+          )}
+        </form>
         <table className="w-full text-sm min-w-[640px]">
           <thead className="bg-zinc-50 border-b border-zinc-200">
             <tr>
               <th className="text-left px-4 py-3 font-medium text-zinc-500">Usuario</th>
+              <th className="text-left px-4 py-3 font-medium text-zinc-500">Matrícula</th>
               <th className="text-left px-4 py-3 font-medium text-zinc-500">Entrada</th>
               <th className="text-left px-4 py-3 font-medium text-zinc-500">Salida</th>
               <th className="text-left px-4 py-3 font-medium text-zinc-500">Duración</th>
@@ -86,9 +146,10 @@ export default async function AttendancePage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100">
-            {records.map((r) => (
+            {registros.map((r) => (
               <tr key={r.id} className="hover:bg-zinc-50">
                 <td className="px-4 py-3 font-medium text-zinc-900">{r.userName}</td>
+                <td className="px-4 py-3 text-zinc-600 font-mono text-xs">{r.userStudentId ?? "—"}</td>
                 <td className="px-4 py-3 text-zinc-600">{formatearFechaHora(r.checkIn)}</td>
                 <td className="px-4 py-3 text-zinc-600">
                   {r.checkOut ? formatearFechaHora(r.checkOut) : (
@@ -107,6 +168,7 @@ export default async function AttendancePage() {
             ))}
           </tbody>
         </table>
+        <Paginacion pagina={paginaValida} totalPaginas={paginas} />
       </div>
     </div>
   );

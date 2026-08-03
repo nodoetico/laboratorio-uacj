@@ -54,7 +54,7 @@ export function MobileMenu({
                 </svg>
               </button>
             </div>
-            <SidebarNav />
+            <SidebarNav esAdmin={isAdmin} />
             <div className="p-3 border-t border-zinc-200 space-y-1">
               <ThemeToggle />
               <form action="/dashboard" method="get">

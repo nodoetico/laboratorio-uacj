@@ -11,6 +11,9 @@ export async function crearExperimento(
     masaMaterial: number;
     volumenSolucion: number;
     concentracionInicial: number;
+    agitacion?: number;
+    temperatura?: number;
+    ph?: number;
   }
 ) {
   const experimento = await prisma.experiment.create({
@@ -21,6 +24,9 @@ export async function crearExperimento(
       materialMass: datos.masaMaterial,
       solutionVolume: datos.volumenSolucion,
       initialConcentration: datos.concentracionInicial,
+      agitation: datos.agitacion ?? null,
+      temperature: datos.temperatura ?? null,
+      ph: datos.ph ?? null,
       replicates: {
         create: [
           { replicateNum: 1 },
@@ -65,6 +71,37 @@ export async function agregarMedicion(
   );
 
   return medicion;
+}
+
+export async function actualizarMedicion(
+  usuarioId: number,
+  medicionId: number,
+  tiempoHoras: number,
+  absorbancia: number
+) {
+  const medicion = await prisma.measurement.findUnique({
+    where: { id: medicionId },
+    include: { replicate: { include: { experiment: { select: { userId: true } } } } },
+  });
+
+  if (!medicion) throw new Error("Medición no encontrada");
+  const propietario = medicion.replicate.experiment.userId;
+  if (propietario !== usuarioId) throw new Error("No autorizado");
+
+  const actualizada = await prisma.measurement.update({
+    where: { id: medicionId },
+    data: { timeHours: tiempoHoras, absorbance: absorbancia },
+  });
+
+  await registrarAuditoria(
+    usuarioId,
+    "ACTUALIZAR",
+    "Measurement",
+    medicionId,
+    `Medición editada: t=${tiempoHoras}h, Abs=${absorbancia}`
+  );
+
+  return actualizada;
 }
 
 export async function eliminarExperimento(

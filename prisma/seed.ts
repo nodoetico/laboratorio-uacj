@@ -26,6 +26,7 @@ async function main() {
       name: "Dr. Torres",
       password,
       role: "ADMIN",
+      studentId: null,
     },
   });
 
@@ -37,6 +38,7 @@ async function main() {
       name: "Estudiante Demo",
       password,
       role: "STUDENT",
+      studentId: "220000",
     },
   });
 
@@ -48,6 +50,7 @@ async function main() {
       name: "Servicio Social Demo",
       password,
       role: "SERVICE",
+      studentId: "220001",
     },
   });
 
@@ -57,6 +60,10 @@ async function main() {
     { name: "pH-metro", model: "Hanna HI5522", maintenanceDays: 180 },
     { name: "Agitador Magnético", model: "Thermo Scientific Cimarec", maintenanceDays: 180 },
     { name: "Estufa de Secado", model: "Riossa ECH-30", maintenanceDays: 180 },
+    { name: "Mufla", model: "Felisa FE-340", maintenanceDays: 180 },
+    { name: "Agitador Rotatorio", model: "Boeco OS-20", maintenanceDays: 180 },
+    { name: "Espectrofotómetro de microplaca", model: "BioTek Epoch", maintenanceDays: 180 },
+    { name: "Ultracentrífuga", model: "Thermo Scientific Sorvall", maintenanceDays: 180 },
   ];
 
   for (const eq of equipments) {
@@ -135,10 +142,11 @@ async function main() {
     const minStock = Math.max(totalQty * 0.1, r.unit === "g" ? 10 : r.unit === "L" ? 0.1 : 5);
     await prisma.reagent.upsert({
       where: { name: r.name },
-      update: { quantity: totalQty, unit: r.unit, minStock },
+      update: { quantity: totalQty, containers: r.containers, unit: r.unit, minStock },
       create: {
         name: r.name,
         quantity: totalQty,
+        containers: r.containers,
         unit: r.unit,
         minStock,
       },

@@ -13,6 +13,34 @@ export async function obtenerReactivos(): Promise<ReactivoDTO[]> {
   }));
 }
 
+export async function obtenerReactivosPaginados(opciones: {
+  pagina?: number;
+  porPagina?: number;
+}): Promise<{ reactivos: ReactivoDTO[]; total: number; paginas: number }> {
+  const pagina = Math.max(1, opciones.pagina ?? 1);
+  const porPagina = Math.min(100, Math.max(1, opciones.porPagina ?? 25));
+
+  const where = { active: true };
+  const [reactivos, total] = await Promise.all([
+    prisma.reagent.findMany({
+      where,
+      orderBy: { name: "asc" },
+      skip: (pagina - 1) * porPagina,
+      take: porPagina,
+    }),
+    prisma.reagent.count({ where }),
+  ]);
+
+  return {
+    reactivos: reactivos.map((r) => ({
+      ...r,
+      stockBajo: r.quantity <= r.minStock,
+    })),
+    total,
+    paginas: Math.max(1, Math.ceil(total / porPagina)),
+  };
+}
+
 export async function obtenerReactivo(id: number): Promise<ReactivoDTO | null> {
   const r = await prisma.reagent.findUnique({ where: { id } });
   if (!r) return null;
@@ -49,6 +77,7 @@ export async function crearReactivo(
     name: string;
     description?: string;
     quantity: number;
+    containers?: number;
     unit: string;
     minStock: number;
     location?: string;
@@ -60,6 +89,7 @@ export async function crearReactivo(
       name: data.name,
       description: data.description ?? null,
       quantity: data.quantity,
+      containers: data.containers ?? 1,
       unit: data.unit,
       minStock: data.minStock,
       location: data.location ?? null,
@@ -84,7 +114,7 @@ export async function crearReactivo(
     "CREAR",
     "Reagent",
     reactivo.id,
-    `Reactivo creado: ${data.name}, ${data.quantity} ${data.unit}`
+    `Reactivo creado: ${data.name}, ${data.quantity} ${data.unit}${data.containers ? ` (${data.containers} envases)` : ""}`
   );
 
   return reactivo;
@@ -144,6 +174,7 @@ export async function actualizarReactivo(
   data: {
     name?: string;
     description?: string;
+    containers?: number;
     unit?: string;
     minStock?: number;
     location?: string;
@@ -166,6 +197,48 @@ export async function actualizarReactivo(
   return reactivo;
 }
 
+export async function ajustarCantidadReactivo(
+  usuarioId: number,
+  id: number,
+  nuevaCantidad: number,
+  motivo?: string
+) {
+  const reactivo = await prisma.reagent.findUnique({ where: { id } });
+  if (!reactivo) throw new Error("Reactivo no encontrado");
+
+  const diferencia = nuevaCantidad - reactivo.quantity;
+
+  if (Math.abs(diferencia) < 0.0001) {
+    return reactivo;
+  }
+
+  const [actualizado] = await prisma.$transaction([
+    prisma.reagent.update({
+      where: { id },
+      data: { quantity: nuevaCantidad },
+    }),
+    prisma.reagentMovement.create({
+      data: {
+        reagentId: id,
+        userId: usuarioId,
+        type: diferencia > 0 ? "IN" : "OUT",
+        quantity: Math.abs(diferencia),
+        notes: `Ajuste de inventario: ${reactivo.quantity} → ${nuevaCantidad}${motivo ? ` (${motivo})` : ""}`,
+      },
+    }),
+  ]);
+
+  await registrarAuditoria(
+    usuarioId,
+    "AJUSTAR_CANTIDAD",
+    "Reagent",
+    id,
+    `Cantidad ajustada de ${reactivo.quantity} a ${nuevaCantidad} ${reactivo.unit}`
+  );
+
+  return actualizado;
+}
+
 export async function obtenerReactivosStockBajo(): Promise<ReactivoDTO[]> {
   const todos = await prisma.reagent.findMany({
     where: { active: true },
@@ -178,6 +251,24 @@ export async function obtenerReactivosStockBajo(): Promise<ReactivoDTO[]> {
 
 export async function contarReactivos(): Promise<number> {
   return prisma.reagent.count({ where: { active: true } });
+}
+
+export async function eliminarReactivo(usuarioId: number, id: number) {
+  const reactivo = await prisma.reagent.findUnique({ where: { id } });
+  if (!reactivo) throw new Error("Reactivo no encontrado");
+
+  await prisma.reagent.update({
+    where: { id },
+    data: { active: false },
+  });
+
+  await registrarAuditoria(
+    usuarioId,
+    "ELIMINAR",
+    "Reagent",
+    id,
+    `Reactivo eliminado: ${reactivo.name}`
+  );
 }
 
 export async function contarReactivosStockBajo(): Promise<number> {

@@ -12,12 +12,16 @@ const links = [
   { href: "/dashboard/attendance", label: "Asistencia", icon: "📋" },
 ];
 
-export function SidebarNav() {
+export function SidebarNav({ esAdmin }: { esAdmin?: boolean }) {
   const pathname = usePathname();
+
+  const linksVisibles = esAdmin
+    ? [...links, { href: "/dashboard/auditoria", label: "Auditoría", icon: "🔍" }]
+    : links;
 
   return (
     <nav className="flex-1 p-3 space-y-1">
-      {links.map((link) => {
+      {linksVisibles.map((link) => {
         const active = link.href === "/dashboard"
           ? pathname === "/dashboard"
           : pathname.startsWith(link.href);

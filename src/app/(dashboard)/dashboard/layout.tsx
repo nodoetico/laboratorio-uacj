@@ -51,7 +51,7 @@ function SidebarWidget({ isAdmin, noLeidas, notificaciones }: { isAdmin: boolean
         </div>
         <NotificationBell initialCount={noLeidas} initialNotifications={notificaciones} />
       </div>
-      <SidebarNav />
+      <SidebarNav esAdmin={isAdmin} />
       <div className="p-3 border-t border-zinc-200">
         <form action={logoutAction}>
           <button

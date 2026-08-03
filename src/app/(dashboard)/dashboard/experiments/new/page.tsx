@@ -47,6 +47,24 @@ export default async function NewExperimentPage() {
               className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               placeholder="Ej: 100.0" />
           </div>
+          <div>
+            <label htmlFor="agitacion" className="block text-sm font-medium text-zinc-700 mb-1">Agitación (rpm)</label>
+            <input id="agitacion" name="agitacion" type="number" step="1"
+              className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              placeholder="Ej: 200" />
+          </div>
+          <div>
+            <label htmlFor="temperatura" className="block text-sm font-medium text-zinc-700 mb-1">Temperatura (°C)</label>
+            <input id="temperatura" name="temperatura" type="number" step="0.1"
+              className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              placeholder="Ej: 25.0" />
+          </div>
+          <div>
+            <label htmlFor="ph" className="block text-sm font-medium text-zinc-700 mb-1">pH</label>
+            <input id="ph" name="ph" type="number" step="0.1" min="0" max="14"
+              className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              placeholder="Ej: 7.0" />
+          </div>
         </div>
 
         <div className="border-t border-zinc-200 pt-4">
@@ -74,12 +92,19 @@ async function handleCrearExperimento(formData: FormData) {
   const session = await verificarSesion();
   if (!session) throw new Error("No autorizado");
 
+  const agitacion = formData.get("agitacion");
+  const temperatura = formData.get("temperatura");
+  const ph = formData.get("ph");
+
   const experimento = await crearExperimento(session.userId, {
     titulo: formData.get("titulo") as string,
     contaminante: formData.get("contaminante") as string,
     masaMaterial: parseFloat(formData.get("masaMaterial") as string),
     volumenSolucion: parseFloat(formData.get("volumenSolucion") as string),
     concentracionInicial: parseFloat(formData.get("concentracionInicial") as string),
+    agitacion: agitacion ? parseFloat(agitacion as string) : undefined,
+    temperatura: temperatura ? parseFloat(temperatura as string) : undefined,
+    ph: ph ? parseFloat(ph as string) : undefined,
   });
 
   revalidatePath("/dashboard/experiments");

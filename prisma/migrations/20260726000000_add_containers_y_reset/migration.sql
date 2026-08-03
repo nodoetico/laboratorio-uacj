@@ -1,0 +1,20 @@
+-- Campo "containers" (número de envases/contenedores) en Reagent
+ALTER TABLE "Reagent" ADD COLUMN IF NOT EXISTS "containers" INTEGER NOT NULL DEFAULT 1;
+
+-- Tabla de tokens para recuperación de contraseña
+CREATE TABLE IF NOT EXISTS "PasswordResetToken" (
+    "id" SERIAL NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "token" TEXT NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "used" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "PasswordResetToken_pkey" PRIMARY KEY ("id")
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "PasswordResetToken_token_key" ON "PasswordResetToken"("token");
+
+ALTER TABLE "PasswordResetToken"
+    ADD CONSTRAINT "PasswordResetToken_userId_fkey"
+    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

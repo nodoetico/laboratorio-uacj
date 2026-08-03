@@ -2,6 +2,7 @@ export type UsuarioDTO = {
   id: number;
   name: string;
   email: string;
+  studentId: string | null;
   role: "ADMIN" | "STUDENT" | "SERVICE";
 };
 
@@ -12,6 +13,9 @@ export type ExperimentoDTO = {
   materialMass: number;
   solutionVolume: number;
   initialConcentration: number;
+  agitation: number | null;
+  temperature: number | null;
+  ph: number | null;
   status: string;
   createdAt: Date;
   completedAt: Date | null;
@@ -46,6 +50,8 @@ export type UsoEquipoDTO = {
   equipmentId: number;
   equipmentName: string;
   userName: string;
+  userStudentId: string | null;
+  substance: string | null;
   startAt: Date;
   endAt: Date | null;
   description: string;
@@ -55,6 +61,7 @@ export type AsistenciaDTO = {
   id: number;
   userId: number;
   userName: string;
+  userStudentId: string | null;
   checkIn: Date;
   checkOut: Date | null;
   type: string;
@@ -66,6 +73,7 @@ export type ReactivoDTO = {
   name: string;
   description: string | null;
   quantity: number;
+  containers: number;
   unit: string;
   minStock: number;
   location: string | null;
@@ -85,4 +93,18 @@ export type MovimientoReactivoDTO = {
   quantity: number;
   notes: string | null;
   createdAt: Date;
+};
+
+export type HistorialDTO = {
+  id: number;
+  accion: string;
+  entidad: string;
+  entidadId: number | null;
+  detalle: string | null;
+  createdAt: Date;
+  usuario: {
+    name: string;
+    email: string;
+    role: "ADMIN" | "STUDENT" | "SERVICE";
+  } | null;
 };

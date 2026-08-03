@@ -3,6 +3,7 @@ import { obtenerReactivo, obtenerMovimientos } from "@/servicios/reactivos";
 import { formatearFechaHora, formatearFechaCorta } from "@/lib/formatear";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { DeleteReagentButton } from "./delete-button";
 
 export default async function ReagentDetailPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -52,6 +53,12 @@ export default async function ReagentDetailPage(props: { params: Promise<{ id: s
             </p>
           </div>
           <div>
+            <p className="text-xs text-zinc-400 uppercase tracking-wide">Envases</p>
+            <p className="text-lg font-bold text-zinc-900 font-mono">
+              {reactivo.containers}
+            </p>
+          </div>
+          <div>
             <p className="text-xs text-zinc-400 uppercase tracking-wide">Stock mínimo</p>
             <p className="text-lg font-bold text-zinc-900 font-mono">
               {reactivo.minStock} {reactivo.unit}
@@ -81,6 +88,13 @@ export default async function ReagentDetailPage(props: { params: Promise<{ id: s
             >
               Registrar movimiento
             </Link>
+            <Link
+              href={`/dashboard/reagents/${reactivo.id}/edit`}
+              className="rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
+            >
+              Editar
+            </Link>
+            <DeleteReagentButton id={reactivo.id} />
           </div>
         )}
       </div>
