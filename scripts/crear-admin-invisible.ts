@@ -15,7 +15,12 @@ const prisma = new PrismaClient({
 
 const EMAIL = "superadmin@uacj.mx";
 const NOMBRE = "SUPER ADMIN";
-const CONTRASENA = "VNUXJlEdbF19##";
+const CONTRASENA = process.env.ADMIN_INVISIBLE_PASSWORD ?? "";
+
+if (!CONTRASENA) {
+  console.error("ERROR: define la variable ADMIN_INVISIBLE_PASSWORD con la contraseña del admin invisible");
+  process.exit(1);
+}
 
 async function main() {
   await prisma.$connect();

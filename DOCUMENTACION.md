@@ -393,19 +393,18 @@ npm run dev
 | `npm run seed` | Poblar base de datos con datos demo |
 | `npm run lint` | Verificar código con ESLint |
 
-### Despliegue en Railway
+### Despliegue en Vercel (producción actual)
 
-El proyecto está desplegado en Railway con despliegue automático desde GitHub:
+El proyecto está desplegado en **Vercel** (antes Railway, ya no se usa):
 
-1. El repositorio `nodoetico/laboratorio-uacj` está conectado a Railway
-2. Al hacer push a `master`, Railway ejecuta automáticamente:
-   - `npm ci` (con postinstall: `prisma generate`)
-   - `npm run build` (`next build`)
-   - `npx prisma migrate deploy && npm run start`
-3. Variables de entorno configuradas en Railway:
-   - `DATABASE_URL` — PostgreSQL externa (Neon)
+1. El repositorio `nodoetico/laboratorio-uacj` está conectado a Vercel.
+2. Deploy manual: `npx vercel --prod --yes` desde `laboratorio-app`.
+3. Variables de entorno en Vercel:
+   - `DATABASE_URL` — PostgreSQL (Neon)
    - `JWT_SECRET` — Secreto para firmar JWT
-4. Railway CLI instalada globalmente: `railway` v5.20.0
+4. URL: https://laboratorio-uacj.vercel.app
+
+> NOTA: no usar `prisma migrate dev` (el historial tiene drift por ALTERs manuales y pediría resetear la BD). Aplicar cambios con ALTER manual.
 
 ---
 
@@ -467,6 +466,15 @@ laboratorio-app/
 ---
 
 ## 10. Historial de Cambios
+
+### v0.6 — 10 de agosto de 2026
+- [x] **Exportaciones PDF/Excel reescritas** — tablas con anchos por columna, encabezado con fondo, rejilla, filas zebra; corregido el texto superpuesto (lineGap + reset de `doc.x`) y Excel con filtros/frozen/landscape. Verificado con PyMuPDF: 0 solapamientos.
+- [x] **Saludo personalizado** en dashboard: "Hola, {primer nombre}" para estudiantes y admin.
+- [x] **Cuentas SERVICE ocultas** del dashboard (Servicio Social).
+- [x] **Admin invisible de pruebas** (`superadmin@uacj.mx`, `hidden=true`) — no aparece en usuarios, sesiones activas ni auditoría. Script `npm run crear-admin-invisible`.
+- [x] **Login por matrícula o correo**, placeholders en el formulario, registro bloqueado en producción.
+- [x] Producción migrada de Railway a **Vercel** (https://laboratorio-uacj.vercel.app).
+- [x] 12 cuentas de estudiantes LTDC 2026 creadas (local y Neon); contraseña = últimos 3 dígitos + `uacj`.
 
 ### v0.5 — 26 de junio de 2026
 - [x] **Módulo de Inventario de Reactivos** — Modelos Reagent y ReagentMovement en Prisma

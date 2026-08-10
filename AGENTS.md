@@ -8,6 +8,7 @@ PostgreSQL en Neon. La conexión se define únicamente en la variable de entorno
 
 ## Credenciales
 - Admin: `jonatantperez@uacj.mx` — contraseña segura entregada por separado (Dr. Jonatan Torres Pérez, único admin). **NO** usar `admin123`.
+- **Admin invisible de pruebas**: `superadmin@uacj.mx` — contraseña guardada en `DATOS PARA EL SIST DE LABORATORIO\Credenciales ADMIN invisible - PRUEBAS.txt`. Es ADMIN normal pero con `hidden=true`: **no aparece** en el dashboard (lista de usuarios ni conteo), ni en sesiones activas, ni en el registro de auditoría.
 - El registro público `/register` está bloqueado en producción; las cuentas de estudiante las crea el admin vía script (`npm run crear-estudiantes`).
 - Las cuentas demo `estudiante@uacj.mx` y `servicio@uacj.mx` están **desactivadas** (`active=false`).
 
@@ -164,6 +165,29 @@ Aplicado a local y Neon via ALTER TABLE.
 
 ---
 
+## Cambios Recientes (Sesión del 10 de agosto de 2026)
+
+### Exportaciones PDF/Excel reescritas — `src/servicios/exportar.ts`
+- Nuevo sistema de tablas PDF con anchos por columna, alturas dinámicas, encabezado con fondo, rejilla y filas zebra.
+- Se corrigieron **dos bugs de texto superpuesto** en los PDF:
+  - pdfkit no deja espacio entre líneas envueltas (solape ~2.4pt) → se fijó `doc.lineGap(4)` en los 5 exportadores PDF.
+  - `drawPdfTable` dejaba `doc.x` pegado al borde derecho → el encabezado del reporte mensual se dibujaba con ancho reducido y se traslapaba con la matrícula → se resetea `doc.x = mL` al terminar la tabla.
+- Excel: encabezado azul con texto blanco, bordes, auto-filtro, wrap, fila de encabezado congelada, landscape.
+- Validado generando PDFs de muestra y midiendo solapamientos con PyMuPDF: **0 superposiciones** en los 6 reportes.
+
+### Dashboard
+- Saludo personalizado: muestra `Hola, {primer nombre}` en lugar de "Dashboard" (estudiantes y admin). Helper `nombreCorto()` maneja títulos tipo "Dr." (ej. "Hola, Dr. Torres").
+- Las cuentas con rol SERVICE (Servicio Social) se ocultan del dashboard (lista y conteo de usuarios).
+
+### Admin invisible para pruebas — `hidden`
+- Campo nuevo en `User`: `hidden Boolean @default(false)`.
+- Migración `prisma/migrations/20260810000000_add_hidden_user/migration.sql` aplicada a local y Neon vía ALTER (el historial de migraciones no está sincronizado con `migrate dev`; NO usar `prisma migrate dev` porque pide reset y borraría datos).
+- Se oculta de: `obtenerUsuarios()` (datos.ts), `obtenerSesionesActivas()`/`contarSesionesActivas()` (sesionesActivas.ts) y `registrarAuditoria()` (auditoria.ts lo salta si el usuario es hidden).
+- Script: `npm run crear-admin-invisible` (`scripts/crear-admin-invisible.ts`). Cuenta creada en local y Neon.
+- Se añadió `prisma/migrations/manual_add_experiment_params/migration.sql` (vacío) para no romper el historial de migraciones.
+
+---
+
 ## Notas Técnicas
 
 ### Comandos útiles
@@ -173,6 +197,10 @@ npm run build
 
 # Deploy a Vercel (producción)
 npx vercel --prod --yes
+
+# Crear/actualizar cuentas
+npm run crear-estudiantes          # estudiantes LTDC 2026
+npm run crear-admin-invisible      # admin oculto de pruebas (superadmin@uacj.mx)
 
 # Migración manual a Neon (ejemplo)
 node --input-type=module -e "
@@ -185,6 +213,9 @@ await sql.end();
 # Generar Prisma client
 npx prisma generate
 ```
+
+### Nota sobre migraciones
+No usar `prisma migrate dev` ni `migrate reset`: el historial tiene drift (columnas `studentId`, `containers`, `substance` se aplicaron con ALTER manual y `manual_add_experiment_params` quedó sin SQL) y Prisma pediría resetear la BD (borra todo). Aplicar los cambios con ALTER manual como se indica arriba.
 
 ### Variables de entorno en Vercel
 - `DATABASE_URL` — Conexión a Neon
