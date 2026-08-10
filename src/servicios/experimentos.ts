@@ -136,6 +136,36 @@ export async function eliminarExperimento(
   return { success: true };
 }
 
+export async function eliminarMedicion(
+  usuarioId: number,
+  role: string,
+  medicionId: number
+) {
+  const medicion = await prisma.measurement.findUnique({
+    where: { id: medicionId },
+    include: { replicate: { include: { experiment: { select: { userId: true, title: true } } } } },
+  });
+
+  if (!medicion) throw new Error("Medición no encontrada");
+
+  const propietario = medicion.replicate.experiment.userId;
+  if (propietario !== usuarioId && role !== "ADMIN") {
+    throw new Error("No autorizado");
+  }
+
+  await prisma.measurement.delete({ where: { id: medicionId } });
+
+  await registrarAuditoria(
+    usuarioId,
+    "ELIMINAR",
+    "Measurement",
+    medicionId,
+    `Medición eliminada: t=${medicion.timeHours}h, Abs=${medicion.absorbance} del experimento "${medicion.replicate.experiment.title}"`
+  );
+
+  return { success: true };
+}
+
 export async function finalizarExperimento(
   usuarioId: number,
   experimentoId: number
@@ -161,7 +191,11 @@ export async function finalizarExperimento(
     `/dashboard/experiments/${experimentoId}`
   );
 
-  notificarExperimentoCompletado(experimento.user.name, experimento.title, experimentoId);
+  try {
+    await notificarExperimentoCompletado(experimento.user.name, experimento.title, experimentoId);
+  } catch (error) {
+    console.error("Error al enviar notificación por email:", error);
+  }
 
   return experimento;
 }

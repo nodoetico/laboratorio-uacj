@@ -78,8 +78,11 @@ export async function verificarContrasena(password: string, hash: string) {
   return bcrypt.compare(password, hash);
 }
 
-export async function autenticarUsuario(email: string, password: string) {
-  const user = await prisma.user.findUnique({ where: { email } });
+export async function autenticarUsuario(identificador: string, password: string) {
+  const id = identificador.trim().toLowerCase();
+  const user = await prisma.user.findFirst({
+    where: { OR: [{ email: id }, { studentId: id }] },
+  });
   if (!user || !user.active) return null;
 
   const valid = await verificarContrasena(password, user.password);

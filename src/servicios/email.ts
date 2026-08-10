@@ -46,7 +46,7 @@ export async function notificarExperimentoCompletado(
   experimentoTitulo: string,
   experimentoId: number
 ) {
-  const enlace = `${process.env.APP_URL || "https://laboratorio-uacj-production.up.railway.app"}/dashboard/experiments/${experimentoId}`;
+  const enlace = `${process.env.APP_URL || "https://laboratorio-uacj.vercel.app"}/dashboard/experiments/${experimentoId}`;
 
   await enviarCorreo(
     `[LabControl] Experimento completado: ${experimentoTitulo}`,

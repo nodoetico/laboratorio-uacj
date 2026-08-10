@@ -67,12 +67,14 @@ export async function obtenerReporteAsistenciaMensual(
   };
 }
 
-export async function registrarEntrada(usuarioId: number) {
+export async function registrarEntrada(usuarioId: number, tipo: string = "research") {
+  const tipoValido = ["research", "service", "teorico"].includes(tipo) ? tipo : "research";
+
   const asistencia = await prisma.attendance.create({
     data: {
       userId: usuarioId,
       checkIn: new Date(),
-      type: "research",
+      type: tipoValido,
     },
   });
 

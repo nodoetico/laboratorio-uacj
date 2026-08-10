@@ -5,6 +5,10 @@ import { redirect } from "next/navigation";
 export default async function RegisterPage(props: {
   searchParams?: Promise<{ error?: string }>;
 }) {
+  if (process.env.NODE_ENV === "production") {
+    redirect("/login");
+  }
+
   const session = await verificarSesion();
   if (session) redirect("/dashboard");
 

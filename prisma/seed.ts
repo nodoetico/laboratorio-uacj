@@ -154,9 +154,6 @@ async function main() {
   }
 
   console.log(`Seed completed successfully`);
-  console.log(`Admin: doctor@uacj.mx / admin123`);
-  console.log(`Student: estudiante@uacj.mx / admin123`);
-  console.log(`Service: servicio@uacj.mx / admin123`);
   console.log(`Reagents: ${reagents.length} seeded from inventory`);
 }
 

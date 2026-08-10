@@ -17,7 +17,7 @@ export default async function LoginPage(props: { searchParams?: Promise<{ error?
         </div>
         {error === "invalid" && (
           <div className="mb-4 rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
-            Credenciales inválidas. Verifica tu correo y contraseña.
+            Credenciales inválidas. Verifica tu usuario (matrícula o correo) y contraseña.
           </div>
         )}
         {searchParams?.reset === "1" && (
@@ -28,15 +28,14 @@ export default async function LoginPage(props: { searchParams?: Promise<{ error?
         <form action={handleLogin} className="space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-zinc-700">
-              Correo electrónico
+              Usuario (matrícula o correo)
             </label>
             <input
               id="email"
               name="email"
-              type="email"
+              type="text"
               required
               className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-              placeholder="doctor@uacj.mx"
             />
           </div>
           <div>
@@ -49,7 +48,6 @@ export default async function LoginPage(props: { searchParams?: Promise<{ error?
               type="password"
               required
               className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-              placeholder="••••••"
             />
           </div>
           <button
@@ -60,15 +58,14 @@ export default async function LoginPage(props: { searchParams?: Promise<{ error?
           </button>
         </form>
         <p className="mt-4 flex items-center justify-between text-xs text-zinc-400">
-          <a href="/register" className="text-blue-600 hover:underline">
-            Crear cuenta
-          </a>
+          {process.env.NODE_ENV !== "production" && (
+            <a href="/register" className="text-blue-600 hover:underline">
+              Crear cuenta
+            </a>
+          )}
           <a href="/recuperar" className="text-blue-600 hover:underline">
             ¿Olvidaste tu contraseña?
           </a>
-        </p>
-        <p className="mt-2 text-xs text-center text-zinc-400">
-          Demo: doctor@uacj.mx / admin123
         </p>
       </div>
     </div>

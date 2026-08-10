@@ -9,6 +9,6 @@ export async function POST(request: NextRequest) {
   }
 
   const { id } = await request.json();
-  await marcarComoLeida(id);
+  await marcarComoLeida(session.userId, id);
   return NextResponse.json({ success: true });
 }

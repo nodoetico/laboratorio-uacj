@@ -51,9 +51,9 @@ export async function contarNoLeidas(usuarioId: number) {
   });
 }
 
-export async function marcarComoLeida(notificacionId: number) {
-  return prisma.notification.update({
-    where: { id: notificacionId },
+export async function marcarComoLeida(usuarioId: number, notificacionId: number) {
+  return prisma.notification.updateMany({
+    where: { id: notificacionId, userId: usuarioId },
     data: { read: true },
   });
 }

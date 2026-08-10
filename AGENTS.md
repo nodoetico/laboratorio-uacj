@@ -6,10 +6,10 @@ https://laboratorio-uacj.vercel.app
 ## Base de datos
 PostgreSQL en Neon. La conexión se define únicamente en la variable de entorno `DATABASE_URL` (en `.env` y en Vercel), nunca hardcodeada en el repositorio.
 
-## Credenciales de prueba
-- Admin: doctor@uacj.mx / admin123
-- Estudiante: estudiante@uacj.mx / admin123
-- Servicio Social: servicio@uacj.mx / admin123
+## Credenciales
+- Admin: `doctor@uacj.mx` — contraseña segura entregada por separado (Dr. Jonatan Torres Pérez, único admin). **NO** usar `admin123`.
+- El registro público `/register` está bloqueado en producción; las cuentas de estudiante las crea el admin vía script (`npm run crear-estudiantes`).
+- Las cuentas demo `estudiante@uacj.mx` y `servicio@uacj.mx` están **desactivadas** (`active=false`).
 
 ---
 
@@ -85,7 +85,7 @@ PostgreSQL en Neon. La conexión se define únicamente en la variable de entorno
 - **Intervalo de mantenimiento configurable por equipo** (solo admin): campo `maintenanceDays` editable en cada tarjeta
 
 ### Autenticación
-- **Registro de estudiante** en `/register` (crea cuenta STUDENT con matrícula opcional, auto-login)
+- **Registro de estudiante** en `/register` (crea cuenta STUDENT con matrícula opcional, auto-login). **Bloqueado en producción** (redirige a `/login`); en desarrollo sí funciona
 - **Recuperación de contraseña** en `/recuperar` (genera token de 1 hora, modelo `PasswordResetToken`) y `/restablecer` (nueva contraseña). SMTP no configurado: el enlace se muestra en pantalla
 
 ### Mejoras de tablas

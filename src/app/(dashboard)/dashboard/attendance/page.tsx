@@ -65,6 +65,14 @@ export default async function AttendancePage(props: {
             </div>
           )}
           <form action={hasOpenSession ? handleRegistrarSalida : handleRegistrarEntrada}>
+            {!hasOpenSession && (
+              <select name="tipo"
+                className="rounded-lg border border-zinc-300 px-2 py-1.5 text-sm text-zinc-900 mr-2">
+                <option value="research">Investigación</option>
+                <option value="service">Servicio Social</option>
+                <option value="teorico">Teórico</option>
+              </select>
+            )}
             <button type="submit"
               className={`rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors ${
                 hasOpenSession
@@ -174,12 +182,13 @@ export default async function AttendancePage(props: {
   );
 }
 
-async function handleRegistrarEntrada() {
+async function handleRegistrarEntrada(formData: FormData) {
   "use server";
   const session = await verificarSesion();
   if (!session) throw new Error("No autorizado");
 
-  await registrarEntrada(session.userId);
+  const tipo = (formData.get("tipo") as string) || "research";
+  await registrarEntrada(session.userId, tipo);
   revalidatePath("/dashboard/attendance");
 }
 

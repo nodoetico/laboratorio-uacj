@@ -1,9 +1,8 @@
 import { verificarSesion } from "@/lib/autenticacion";
 import { obtenerExperimento } from "@/lib/datos";
-import { agregarMedicion, actualizarMedicion, finalizarExperimento } from "@/servicios/experimentos";
+import { agregarMedicion, actualizarMedicion, finalizarExperimento, eliminarMedicion } from "@/servicios/experimentos";
 import { calcularCinetico } from "@/servicios/cineticos";
 import { calcularAvanzado } from "@/servicios/cineticos-avanzados";
-import { prisma } from "@/lib/bd";
 import { redirect, notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
@@ -315,7 +314,7 @@ async function handleEliminarMedicion(formData: FormData) {
   const medicionId = parseInt(formData.get("medicionId") as string);
   const experimentoId = formData.get("experimentoId") as string;
 
-  await prisma.measurement.delete({ where: { id: medicionId } });
+  await eliminarMedicion(session.userId, session.role, medicionId);
   revalidatePath(`/dashboard/experiments/${experimentoId}`);
 }
 
