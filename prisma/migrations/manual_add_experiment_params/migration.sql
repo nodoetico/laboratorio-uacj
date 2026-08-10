@@ -1,0 +1,2 @@
+-- Migración aplicada manualmente a la base de datos.
+-- Mantener vacía: los cambios ya existen en local y en Neon.

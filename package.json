@@ -9,6 +9,7 @@
     "lint": "eslint",
     "seed": "tsx prisma/seed.ts",
     "crear-estudiantes": "tsx scripts/crear-estudiantes.ts",
+    "crear-admin-invisible": "tsx scripts/crear-admin-invisible.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

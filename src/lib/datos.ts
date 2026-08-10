@@ -4,6 +4,7 @@ import type { UsuarioDTO, ExperimentoDTO, EquipoDTO, UsoEquipoDTO, AsistenciaDTO
 
 export async function obtenerUsuarios(): Promise<UsuarioDTO[]> {
   return prisma.user.findMany({
+    where: { hidden: false },
     select: { id: true, name: true, email: true, studentId: true, role: true },
     orderBy: { name: "asc" },
   });

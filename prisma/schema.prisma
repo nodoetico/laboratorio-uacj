@@ -21,6 +21,7 @@ model User {
   studentId String?  @unique
   role      Role      @default(STUDENT)
   active    Boolean   @default(true)
+  hidden    Boolean   @default(false)
   createdAt DateTime  @default(now())
 
   experiments    Experiment[]

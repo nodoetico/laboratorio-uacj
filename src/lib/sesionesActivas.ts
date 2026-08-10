@@ -37,7 +37,7 @@ export async function obtenerSesionesActivas(): Promise<SesionActivaDTO[]> {
     Date.now() - UMBRAL_ACTIVO_MIN * 60 * 1000
   );
   const sessions = await prisma.activeSession.findMany({
-    where: { heartbeat: { gte: threshold } },
+    where: { heartbeat: { gte: threshold }, user: { is: { hidden: false } } },
     include: {
       user: { select: { name: true, email: true, role: true } },
     },
@@ -59,7 +59,7 @@ export async function contarSesionesActivas(): Promise<number> {
     Date.now() - UMBRAL_ACTIVO_MIN * 60 * 1000
   );
   return prisma.activeSession.count({
-    where: { heartbeat: { gte: threshold } },
+    where: { heartbeat: { gte: threshold }, user: { is: { hidden: false } } },
   });
 }
 

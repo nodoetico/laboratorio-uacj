@@ -9,6 +9,12 @@ export async function registrarAuditoria(
   entidadId?: number,
   detalle?: string
 ) {
+  const usuario = await prisma.user.findUnique({
+    where: { id: usuarioId },
+    select: { hidden: true },
+  });
+  if (usuario?.hidden) return;
+
   await prisma.auditLog.create({
     data: {
       userId: usuarioId,
