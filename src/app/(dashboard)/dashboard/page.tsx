@@ -1,5 +1,5 @@
 import { verificarSesion } from "@/lib/autenticacion";
-import { obtenerExperimentos, obtenerUsuarios, obtenerAsistencia, obtenerEquipos } from "@/lib/datos";
+import { obtenerExperimentos, obtenerUsuarios, obtenerAsistencia, obtenerEquipos, obtenerUsuario } from "@/lib/datos";
 import { obtenerSesionesActivas, contarSesionesActivas, limpiarSesionesExpiradas } from "@/lib/sesionesActivas";
 import { obtenerReactivos, contarReactivosStockBajo } from "@/servicios/reactivos";
 import { formatearHora, esMismoDia } from "@/lib/formatear";
@@ -8,6 +8,9 @@ import Link from "next/link";
 export default async function DashboardPage() {
   const session = await verificarSesion();
   if (!session) return null;
+
+  const currentUser = await obtenerUsuario(session.userId);
+  const nombreSaludo = currentUser ? nombreCorto(currentUser.name) : "bienvenido";
 
   const isAdmin = session.role === "ADMIN";
   const experiments = await obtenerExperimentos(isAdmin ? undefined : session.userId);
@@ -38,7 +41,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-zinc-900">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-zinc-900">Hola, {nombreSaludo}</h1>
         <p className="text-zinc-500 text-sm">
           {isAdmin ? "Vista general del laboratorio" : "Mis experimentos"}
         </p>
@@ -198,6 +201,12 @@ export default async function DashboardPage() {
       </section>
     </div>
   );
+}
+
+function nombreCorto(nombre: string): string {
+  const partes = nombre.trim().split(/\s+/);
+  if (partes[0].endsWith(".") && partes[1]) return `${partes[0]} ${partes[1]}`;
+  return partes[0];
 }
 
 type ColorStat = "blue" | "green" | "purple" | "amber" | "cyan" | "teal" | "red";

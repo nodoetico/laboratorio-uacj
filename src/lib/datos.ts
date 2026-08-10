@@ -9,6 +9,13 @@ export async function obtenerUsuarios(): Promise<UsuarioDTO[]> {
   });
 }
 
+export async function obtenerUsuario(id: number): Promise<UsuarioDTO | null> {
+  return prisma.user.findUnique({
+    where: { id },
+    select: { id: true, name: true, email: true, studentId: true, role: true },
+  });
+}
+
 export async function obtenerExperimentos(userId?: number): Promise<ExperimentoDTO[]> {
   const where = userId ? { userId } : {};
   return prisma.experiment.findMany({
