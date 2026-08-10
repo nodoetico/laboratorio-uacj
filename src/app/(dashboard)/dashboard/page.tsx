@@ -11,7 +11,7 @@ export default async function DashboardPage() {
 
   const isAdmin = session.role === "ADMIN";
   const experiments = await obtenerExperimentos(isAdmin ? undefined : session.userId);
-  const users = isAdmin ? await obtenerUsuarios() : [];
+  const users = isAdmin ? (await obtenerUsuarios()).filter((u) => u.role !== "SERVICE") : [];
   const equipments = await obtenerEquipos();
   const attendance = isAdmin ? await obtenerAsistencia() : [];
 
