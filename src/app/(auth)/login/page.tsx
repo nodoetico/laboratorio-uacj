@@ -35,6 +35,7 @@ export default async function LoginPage(props: { searchParams?: Promise<{ error?
               name="email"
               type="text"
               required
+              placeholder="Tu matrícula, ej. 123456"
               className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />
           </div>
@@ -47,6 +48,7 @@ export default async function LoginPage(props: { searchParams?: Promise<{ error?
               name="password"
               type="password"
               required
+              placeholder="Últimos 3 dígitos + uacj, ej. 456uacj"
               className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />
           </div>

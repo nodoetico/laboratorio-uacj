@@ -7,7 +7,7 @@ https://laboratorio-uacj.vercel.app
 PostgreSQL en Neon. La conexión se define únicamente en la variable de entorno `DATABASE_URL` (en `.env` y en Vercel), nunca hardcodeada en el repositorio.
 
 ## Credenciales
-- Admin: `doctor@uacj.mx` — contraseña segura entregada por separado (Dr. Jonatan Torres Pérez, único admin). **NO** usar `admin123`.
+- Admin: `jonatantperez@uacj.mx` — contraseña segura entregada por separado (Dr. Jonatan Torres Pérez, único admin). **NO** usar `admin123`.
 - El registro público `/register` está bloqueado en producción; las cuentas de estudiante las crea el admin vía script (`npm run crear-estudiantes`).
 - Las cuentas demo `estudiante@uacj.mx` y `servicio@uacj.mx` están **desactivadas** (`active=false`).
 

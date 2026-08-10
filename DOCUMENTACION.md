@@ -152,12 +152,12 @@ User (usuario)
 - Middleware `proxy.ts` protege todas las rutas excepto `/login`
 - 3 roles: ADMIN, STUDENT, SERVICE
 
-**Usuarios demo:**
+**Usuarios:**
 | Correo | Contraseña | Rol |
 |---|---|---|
-| doctor@uacj.mx | admin123 | ADMIN (Dr. Torres) |
-| estudiante@uacj.mx | admin123 | STUDENT |
-| servicio@uacj.mx | admin123 | SERVICE (Servicio Social) |
+| jonatantperez@uacj.mx | entregada por separado | ADMIN (Dr. Torres) |
+| estudiante@uacj.mx | desactivada | STUDENT |
+| servicio@uacj.mx | desactivada | SERVICE (Servicio Social) |
 
 ### 4.2 Dashboard
 
@@ -379,11 +379,10 @@ npm run dev
 ```
 
 ### Acceso
-- **Producción:** https://laboratorio-uacj-production.up.railway.app
+- **Producción:** https://laboratorio-uacj.vercel.app
 - **Local:** http://localhost:3000
-- **Login:** doctor@uacj.mx / admin123
-- **Login estudiante:** estudiante@uacj.mx / admin123
-- **Login servicio social:** servicio@uacj.mx / admin123
+- **Login admin:** jonatantperez@uacj.mx (contraseña entregada por separado)
+- Las cuentas demo están desactivadas en producción.
 
 ### Comandos
 
