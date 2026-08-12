@@ -205,6 +205,36 @@ Aplicado a local y Neon via ALTER TABLE.
 
 ---
 
+## Cambios Recientes (Sesión del 12 de agosto de 2026)
+
+### 🚨 REGLA IMPORTANTE registrada en este archivo
+- Se añadió la sección **"REGLA IMPORTANTE"** al inicio de `AGENTS.md`: ninguna modificación puede romper lo que ya funciona, debe ser limpia y aditiva, no debe interrumpir las actividades del Dr. ni de los alumnos, y debe validarse con `npm run build` + `npm run lint` antes de desplegar. Aplica a TODAS las sesiones futuras.
+
+### Reactivos — estudiantes pueden registrar salidas (OUT)
+- **Causa raíz:** los botones "Registrar movimiento"/"Editar" solo se renderizaban con `{isAdmin && ...}` y la página/servicio rechazaban a no-admins (observación del Dr.).
+- **Cambios:**
+  - `src/app/(dashboard)/dashboard/reagents/[id]/page.tsx` — el botón **"Registrar movimiento"** ahora se muestra a todos los usuarios autenticados; "Editar" y eliminar quedan solo para ADMIN.
+  - `src/app/(dashboard)/dashboard/reagents/[id]/movement/page.tsx` — estudiantes/servicio social solo pueden registrar **OUT (consumo)**; el select IN/OUT solo aparece para ADMIN (para el resto se usa `input hidden type="OUT"` con mensaje explicativo). El server action recalcula `esAdmin` desde la sesión (`session.role === "ADMIN"`) y rechaza IN para no-admins (defensa en profundidad).
+- **Traza:** las salidas de estudiantes quedan en el historial del reactivo y en AuditLog (ISO 17025).
+
+### Auditoría — exportación a PDF (solo admin)
+- Botón **"PDF"** en `/dashboard/auditoria` que exporta el historial completo (o el filtrado por entidad activo).
+- **Archivos:**
+  - `src/servicios/auditoria.ts` — nueva función `obtenerHistorialCompleto({ entidad?, entidadId? })`: devuelve TODOS los registros (sin paginación), `orderBy createdAt desc`.
+  - `src/servicios/exportar.ts` — nueva función `exportarAuditoriaPDF(historial: HistorialDTO[])` con la infraestructura de tablas existente (`drawPdfTable`); columnas Fecha/Usuario/Rol/Acción/Entidad/Detalle; mapas legibles `ACCION_MAPA`, `ENTIDAD_MAPA`, `ROL_MAPA`.
+  - `src/app/api/exportar/auditoria/route.ts` — GET, **solo ADMIN** (401 si no), acepta `?entidad=`, devuelve PDF (`Content-Disposition: attachment; filename="auditoria.pdf"`).
+  - `src/app/(dashboard)/dashboard/auditoria/page.tsx` — botón rojo "PDF" que apunta a la ruta (mantiene el filtro `entidad` activo).
+- **Verificación:** `npm run build` + `npm run lint` OK; PDF de prueba generado (11897 bytes, firma `%PDF`).
+
+### Despliegues (12 de agosto de 2026)
+| Commit | Contenido | Estado |
+|--------|-----------|--------|
+| `4962ee1` | fix: estudiantes pueden registrar salidas (OUT) de reactivos | ✅ desplegado |
+| `512a7d4` | docs: REGLA IMPORTANTE en AGENTS.md | ✅ push (sin deploy, no afecta runtime) |
+| `d177d9f` | feat: exportar auditoría a PDF (admin) | ✅ desplegado |
+
+---
+
 ## Notas Técnicas
 
 ### Comandos útiles

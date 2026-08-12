@@ -468,6 +468,11 @@ laboratorio-app/
 
 ## 10. Historial de Cambios
 
+### v0.7 — 12 de agosto de 2026
+- [x] **Reactivos: estudiantes pueden registrar salidas (OUT)** — observación del Dr.: a los alumnos no les aparecía "Registrar movimiento". Ahora el botón es visible para todos; estudiantes/servicio social solo registran **consumo (OUT)**, el admin conserva entradas (IN), edición y eliminación. Validado en UI y servidor (defensa en profundidad).
+- [x] **Auditoría: exportación a PDF (solo admin)** — botón "PDF" en `/dashboard/auditoria` (respeta el filtro de entidad activo), ruta `/api/exportar/auditoria`, función `obtenerHistorialCompleto()` y `exportarAuditoriaPDF()`. Documento "palpable" de toda la trazabilidad ISO 17025.
+- [x] **REGLA IMPORTANTE** — registrada en `AGENTS.md`: no romper lo que ya funciona, cambios limpios/aditivos, no interrumpir las actividades del Dr. ni de los alumnos, validar build + lint antes de desplegar.
+
 ### v0.6 — 10 de agosto de 2026
 - [x] **Exportaciones PDF/Excel reescritas** — tablas con anchos por columna, encabezado con fondo, rejilla, filas zebra; corregido el texto superpuesto (lineGap + reset de `doc.x`) y Excel con filtros/frozen/landscape. Verificado con PyMuPDF: 0 solapamientos.
 - [x] **Saludo personalizado** en dashboard: "Hola, {primer nombre}" para estudiantes y admin.
