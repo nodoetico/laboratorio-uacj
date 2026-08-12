@@ -243,7 +243,8 @@ Módulo de inventario de reactivos y consumibles del laboratorio.
 - Trazabilidad ISO 17025: cada movimiento queda registrado en AuditLog
 
 **Reglas de negocio:**
-- Solo el administrador puede crear reactivos y registrar movimientos
+- Solo el administrador puede crear/editar/eliminar reactivos y registrar **entradas (IN)** de stock
+- Los estudiantes y servicio social pueden registrar **salidas (OUT)** de stock (consumo) con trazabilidad
 - No se permite registrar una salida si el stock es insuficiente
 - El stock se actualiza automáticamente al registrar un movimiento (transacción atómica)
 

@@ -80,23 +80,25 @@ export default async function ReagentDetailPage(props: { params: Promise<{ id: s
           )}
         </div>
 
-        {isAdmin && (
-          <div className="flex gap-2 mt-4">
-            <Link
-              href={`/dashboard/reagents/${reactivo.id}/movement`}
-              className="rounded-lg bg-zinc-800 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-900 transition-colors"
-            >
-              Registrar movimiento
-            </Link>
-            <Link
-              href={`/dashboard/reagents/${reactivo.id}/edit`}
-              className="rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
-            >
-              Editar
-            </Link>
-            <DeleteReagentButton id={reactivo.id} />
-          </div>
-        )}
+        <div className="flex gap-2 mt-4">
+          <Link
+            href={`/dashboard/reagents/${reactivo.id}/movement`}
+            className="rounded-lg bg-zinc-800 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-900 transition-colors"
+          >
+            Registrar movimiento
+          </Link>
+          {isAdmin && (
+            <>
+              <Link
+                href={`/dashboard/reagents/${reactivo.id}/edit`}
+                className="rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
+              >
+                Editar
+              </Link>
+              <DeleteReagentButton id={reactivo.id} />
+            </>
+          )}
+        </div>
       </div>
 
       <section className="rounded-xl bg-white border border-zinc-200 p-5">

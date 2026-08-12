@@ -7,7 +7,9 @@ import Link from "next/link";
 export default async function MovementPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const session = await verificarSesion();
-  if (!session || session.role !== "ADMIN") redirect("/dashboard");
+  if (!session) redirect("/dashboard");
+
+  const esAdmin = session.role === "ADMIN";
 
   const id = parseInt(params.id);
   const reactivo = await obtenerReactivo(id);
@@ -34,15 +36,24 @@ export default async function MovementPage(props: { params: Promise<{ id: string
           <label htmlFor="type" className="block text-sm font-medium text-zinc-700">
             Tipo de movimiento *
           </label>
-          <select
-            id="type"
-            name="type"
-            required
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          >
-            <option value="IN">Entrada (agregar stock)</option>
-            <option value="OUT">Salida (consumir stock)</option>
-          </select>
+          {esAdmin ? (
+            <select
+              id="type"
+              name="type"
+              required
+              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="IN">Entrada (agregar stock)</option>
+              <option value="OUT">Salida (consumir stock)</option>
+            </select>
+          ) : (
+            <>
+              <input type="hidden" name="type" value="OUT" />
+              <p className="mt-1 text-sm text-zinc-600">
+                Salida (consumir stock) — los estudiantes solo pueden registrar consumo de reactivos; las entradas las registra el administrador.
+              </p>
+            </>
+          )}
         </div>
 
         <div>
@@ -87,12 +98,16 @@ export default async function MovementPage(props: { params: Promise<{ id: string
 async function handleSubmit(formData: FormData) {
   "use server";
   const session = await verificarSesion();
-  if (!session || session.role !== "ADMIN") throw new Error("No autorizado");
+  if (!session) throw new Error("No autorizado");
+
+  const esAdmin = session.role === "ADMIN";
+  const type = formData.get("type") as "IN" | "OUT";
+  if (!esAdmin && type !== "OUT") throw new Error("No autorizado");
 
   await registrarMovimiento(
     session.userId,
     parseInt(formData.get("reagentId") as string),
-    formData.get("type") as "IN" | "OUT",
+    type,
     parseFloat(formData.get("quantity") as string),
     (formData.get("notes") as string) || undefined
   );
