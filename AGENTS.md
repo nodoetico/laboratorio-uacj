@@ -1,5 +1,21 @@
 # LabControl UACJ — Documentación del Proyecto
 
+## 🚨 REGLA IMPORTANTE (vigente desde que el Dr. y los alumnos usan el sistema)
+
+> **CUALQUIER modificación que se haga en el sistema DE AHORA EN ADELANTE debe cumplir obligatoriamente:**
+
+1. **NO modificar, romper ni alterar de ninguna manera lo que ya funciona.** El sistema está en uso real por el Dr. y sus alumnos. Cada cambio debe ser **aditivo y quirúrgico**: tocar únicamente lo necesario, sin refactors globales ni reescrituras de módulos que ya operan bien.
+2. **Cambios limpios.** Respetar las convenciones existentes (patrones, estilos, estructura de `src/servicios`, `src/lib`, server actions). Sin código muerto, sin dependencias nuevas innecesarias, sin comentarios de más.
+3. **NO interrumpir las actividades del Dr. ni de los alumnos.**
+   - Está prohibido operar sobre la base de datos en producción de forma destructiva: **no** `migrate reset`, **no** borrar/truncar tablas, **no** cambios de schema que requieran reset. Los cambios de schema se aplican con `ALTER TABLE` manual y compatibles con los datos existentes.
+   - Los desplegues a Vercel deben validarse antes con `npm run build` + `npm run lint` locales; el build debe pasar sin errores.
+   - Preferir cambios que no requieran tiempo de inactividad ni afectar sesiones activas.
+   - No crear/eliminar/mover archivos que el sistema lee en caliente sin verificar dependencias.
+4. **Verificación obligatoria antes de entregar/desplegar:** `npm run build` y `npm run lint` deben pasar, y comprobar que las funcionalidades existentes siguen intactas (revisar las páginas/rutas afectadas por cercanía).
+5. Si un cambio implica riesgo para datos existentes o para flujos en uso, **preguntar antes** al usuario y proponer la alternativa no destructiva.
+
+---
+
 ## URL de producción
 https://laboratorio-uacj.vercel.app
 
