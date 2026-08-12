@@ -67,6 +67,13 @@ export default async function AuditoriaPage(props: {
             Trazabilidad de todas las operaciones · {total} registros
           </p>
         </div>
+        <a
+          href={`/api/exportar/auditoria${entidad ? `?entidad=${entidad}` : ""}`}
+          target="_blank"
+          className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100 transition-colors"
+        >
+          PDF
+        </a>
       </div>
 
       <form method="get" className="flex items-center gap-3">

@@ -88,6 +88,7 @@ PostgreSQL en Neon. La conexión se define únicamente en la variable de entorno
 ### Auditoría (ISO 17025)
 - Trazabilidad de todas las operaciones en AuditLog
 - **Página de auditoría visible** en `/dashboard/auditoria` (solo admin): tabla con fecha, usuario, acción, entidad y detalle, filtro por entidad y paginación. Link en el sidebar.
+- **Exportación a PDF** (solo admin) vía `/api/exportar/auditoria` — botón "PDF" en la página de auditoría; respeta el filtro de entidad activo y exporta el historial completo
 
 ### Reactivos (adicionales)
 - **Campo `containers`** (número de envases) en schema, formulario de creación/edición, detalle y exportación

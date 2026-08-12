@@ -1,6 +1,6 @@
 import ExcelJS from "exceljs";
 import PDFDocument from "pdfkit";
-import type { ExperimentoDTO, AsistenciaDTO, UsoEquipoDTO, ReactivoDTO } from "@/lib/tipos";
+import type { ExperimentoDTO, AsistenciaDTO, UsoEquipoDTO, ReactivoDTO, HistorialDTO } from "@/lib/tipos";
 import type { ReporteAsistenciaMensual } from "@/servicios/asistencia";
 import { formatearFechaCorta, formatearFechaHora, formatearHora } from "@/lib/formatear";
 
@@ -768,6 +768,74 @@ export async function exportarEquiposPDF(uso: UsoEquipoDTO[]): Promise<Buffer> {
       { header: "Inicio", width: 68, align: "center" },
       { header: "Fin", width: 68, align: "center" },
       { header: "Descripción", width: 86 },
+    ],
+    filas: rows,
+    startY: doc.y,
+  });
+
+  return pdfToBuffer(doc);
+}
+
+// === AUDITORÍA ===
+
+const ACCION_MAPA: Record<string, string> = {
+  CREAR: "Crear",
+  ACTUALIZAR: "Actualizar",
+  ELIMINAR: "Eliminar",
+  FINALIZAR: "Finalizar",
+  AGREGAR_MEDICION: "Agregar medición",
+  REGISTRAR_USO: "Registrar uso",
+  ENTRADA: "Entrada",
+  SALIDA: "Salida",
+  ENTRADA_REACTIVO: "Entrada reactivo",
+  SALIDA_REACTIVO: "Salida reactivo",
+  AJUSTAR_CANTIDAD: "Ajustar cantidad",
+};
+
+const ENTIDAD_MAPA: Record<string, string> = {
+  Experimento: "Experimento",
+  Measurement: "Medición",
+  EquipmentUsage: "Uso de equipo",
+  Attendance: "Asistencia",
+  Reagent: "Reactivo",
+  ReagentMovement: "Movimiento de reactivo",
+  User: "Usuario",
+};
+
+const ROL_MAPA: Record<string, string> = {
+  ADMIN: "Admin",
+  STUDENT: "Estudiante",
+  SERVICE: "Servicio",
+};
+
+export async function exportarAuditoriaPDF(historial: HistorialDTO[]): Promise<Buffer> {
+  const doc = new PDFDocument({ margin: 30, size: "LETTER" });
+  doc.lineGap(4);
+  doc.fillColor(COLOR_TEXTO);
+
+  dibujarTituloPDF(
+    doc,
+    "Auditoría del Sistema (ISO 17025)",
+    `Generado: ${formatearFechaHora(new Date())} · ${historial.length} registros`
+  );
+
+  const rows = historial.map((r) => [
+    formatearFechaHora(r.createdAt),
+    r.usuario?.name ?? "—",
+    r.usuario ? ROL_MAPA[r.usuario.role] ?? r.usuario.role : "—",
+    ACCION_MAPA[r.accion] ?? r.accion,
+    `${ENTIDAD_MAPA[r.entidad] ?? r.entidad}${r.entidadId ? ` #${r.entidadId}` : ""}`,
+    r.detalle ?? "",
+  ]);
+
+  drawPdfTable(doc, {
+    columnas: [
+      { header: "Fecha", width: 88, align: "center" },
+      { header: "Usuario", width: 96 },
+      { header: "Rol", width: 52, align: "center" },
+      { header: "Acción", width: 94 },
+      { header: "Entidad", width: 76 },
+      { header: "Detalle", width: 146 },
     ],
     filas: rows,
     startY: doc.y,

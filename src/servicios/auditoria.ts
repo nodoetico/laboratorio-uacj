@@ -73,3 +73,33 @@ export async function obtenerHistorial(
     paginas: Math.max(1, Math.ceil(total / porPagina)),
   };
 }
+
+export async function obtenerHistorialCompleto(
+  opciones: { entidad?: string; entidadId?: number } = {}
+): Promise<HistorialDTO[]> {
+  const { entidad, entidadId } = opciones;
+
+  const where: Prisma.AuditLogWhereInput = {};
+  if (entidad) where.entidad = entidad;
+  if (entidadId) where.entidadId = entidadId;
+
+  const registros = await prisma.auditLog.findMany({
+    where,
+    include: {
+      user: { select: { name: true, email: true, role: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return registros.map((r) => ({
+    id: r.id,
+    accion: r.accion,
+    entidad: r.entidad,
+    entidadId: r.entidadId,
+    detalle: r.detalle,
+    createdAt: r.createdAt,
+    usuario: r.user
+      ? { name: r.user.name, email: r.user.email, role: r.user.role }
+      : null,
+  }));
+}
